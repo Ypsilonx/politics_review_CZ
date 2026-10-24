@@ -21,7 +21,8 @@
     {% block content %}{% endblock %}
   </main>
   <footer class="paticka">
-    Data: <a href="https://www.psp.cz/sqw/hp.sqw?k=1300" target="_blank" rel="noopener">otevřená data Poslanecké sněmovny PČR</a>
+    Data: <a href="https://www.psp.cz/sqw/hp.sqw?k=1300" target="_blank" rel="noopener">otevřená data Poslanecké sněmovny PČR</a>{% if stav_dat() %}, zpracováno {{ stav_dat() }}{% endif %}.
+    Neoficiální přehled, nesouvisí s PSP.
   </footer>
 </body>
 </html>

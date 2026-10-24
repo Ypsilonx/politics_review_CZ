@@ -3,8 +3,9 @@ name = "politika"
 version = "0.1.0"
 description = "Osobní přehled hlasování poslanců PSP ČR"
 readme = "README.md"
+license = "MIT"
 authors = [
-    { name = "Ypsilonx", email = "cibulect@seznam.cz" }
+    { name = "Ypsilonx" }
 ]
 requires-python = ">=3.14"
 dependencies = [

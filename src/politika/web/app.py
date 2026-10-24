@@ -2,6 +2,7 @@
 
 import sqlite3
 from collections.abc import Iterator
+from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -50,10 +51,19 @@ def datum_cz(iso: str | None) -> str:
     return f"{int(d)}. {int(m)}. {r}"
 
 
+def stav_dat() -> str:
+    """Datum zpracování otevřených dat (poslední stažení ZIPu hlasování) – podmínka užití dat PSP."""
+    zip_hlasovani = config.OPENDATA_DIR / f"hl-{config.OBDOBI}.zip"
+    if not zip_hlasovani.exists():
+        return ""
+    return datum_cz(datetime.fromtimestamp(zip_hlasovani.stat().st_mtime).date().isoformat())
+
+
 templates = Jinja2Templates(directory=WEB_DIR / "templates")
 templates.env.globals.update(HLAS_TEXT=HLAS_TEXT, VYSLEDEK_TEXT=VYSLEDEK_TEXT,
                              DRUH_TEXT=DRUH_TEXT, MENU=MENU, PSP_URL="https://www.psp.cz")
 templates.env.filters["datum"] = datum_cz
+templates.env.globals["stav_dat"] = stav_dat
 
 
 def get_db() -> Iterator[sqlite3.Connection]:

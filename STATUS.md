@@ -12,6 +12,7 @@ Návrh: `docs/specs/2026-10-24-sledovani-poslancu-design.md`.
 - Revize kódu (9 nálezů) opravena. Stahování z psp.cz jen v noci 22–6 h (`--ihned` mimo okno),
   kontakt v User-Agentu z `POLITIKA_KONTAKT`, soubory tisků a návrhů jen jako odkazy na psp.cz.
 - Tlačítko „Aktualizovat data“ na Přehledu (obnova na pozadí; Plánovač úloh uživatel nechce).
+- Připraveno ke zveřejnění: LICENSE (MIT), upozornění a šetrnost v README, zdroj + datum v patičce.
 
 ## Rozpracováno
 - První kompletní stažení stenozáznamů: hotovo schůze 35–11, zbytek v noci tlačítkem.
@@ -31,4 +32,4 @@ Návrh: `docs/specs/2026-10-24-sledovani-poslancu-design.md`.
 - Pozměňovací návrhy jsou jen DOCX; převod na HTML (mammoth) zrušen – uživatel čte jen část,
   stahování všeho zbytečně zatěžovalo psp.cz → odkaz na originál.
 - Ústní interpelace (`interp.zip`) zatím nemají data pro období 2025 → v profilu nejsou.
-- Před zveřejněním na GitHubu: licence (návrh MIT), kontrola osobních údajů (autor v pyproject.toml).
+- Autor commitů je `cibulect@seznam.cz`; na GitHub noreply jen přepisem historie (před 1. pushem).
