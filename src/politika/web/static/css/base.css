@@ -1,43 +1,90 @@
-/* Základ: proměnné (barvy, písmo, šířky) – uprav si podle vkusu zde. */
+/* Základ: barvy obou režimů, písmo, typografická škála. Úpravy vzhledu dělej hlavně tady. */
+
 :root {
-  --pozadi: #f6f7f9;
-  --plocha: #ffffff;
-  --text: #1d2330;
-  --text-tlumeny: #5d6677;
-  --okraj: #dde1e8;
-  --akcent: #1f5fbf;
-  --ano: #1e7d3c;
-  --ne: #b3261e;
-  --zdrzel: #8a6d00;
-  --nepritomen: #8a8f99;
-  --pismo: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* Barvy hlasů – nesou identitu celé aplikace, stejné v obou režimech (jen jas se doladí). */
+  --ano: #4cb782;
+  --ne: #e5604f;
+  --zdrzel: #d9a83e;
+  --nepritomen: #5b6678;
+
+  --pismo: "Atkinson Hyperlegible", system-ui, sans-serif;
+  --pismo-nadpisy: "Newsreader", Georgia, serif;
   --velikost-pisma: 16px;
-  --max-sirka: 1100px;
-  /* Breakpoint pro mobil (640px) je v komponenty.css – CSS proměnná v @media nefunguje. */
+  /* Typografická škála (poměr ~1,25). */
+  --t-mala: .8125rem;
+  --t-h3: 1.125rem;
+  --t-h2: 1.375rem;
+  --t-h1: 2.25rem;
+  --max-sirka: 1180px;
+  --radius: 10px;
+  --radius-maly: 6px;
+}
+
+/* Tmavý režim (výchozí). */
+:root, [data-theme="dark"] {
+  --pozadi: #131a24;
+  --plocha: #1b2330;
+  --plocha-2: #222c3b;
+  --okraj: #2c3646;
+  --text: #e6e9ef;
+  --text-tlumeny: #93a0b4;
+  --odkaz: #8fb4ff;
+  --zvyrazneni: #2a3a55;
+  color-scheme: dark;
+}
+
+/* Světlý režim. */
+[data-theme="light"] {
+  --pozadi: #eef1f5;
+  --plocha: #ffffff;
+  --plocha-2: #f5f7fa;
+  --okraj: #d7dde6;
+  --text: #18202c;
+  --text-tlumeny: #5a6476;
+  --odkaz: #1f56b8;
+  --zvyrazneni: #dfe8f8;
+  --ano: #23864f;
+  --ne: #c53a2a;
+  --zdrzel: #a87a10;
+  --nepritomen: #8a93a3;
+  color-scheme: light;
 }
 
 * { box-sizing: border-box; }
 
+html { background: var(--pozadi); }
+
 body {
   margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   background: var(--pozadi);
   color: var(--text);
-  font: var(--velikost-pisma)/1.5 var(--pismo);
+  font: var(--velikost-pisma)/1.55 var(--pismo);
+  -webkit-font-smoothing: antialiased;
 }
 
-a { color: var(--akcent); text-decoration: none; }
+h1, h2, h3 { font-family: var(--pismo-nadpisy); font-weight: 600; line-height: 1.2; }
+h1 { font-size: var(--t-h1); margin: 0 0 .35rem; letter-spacing: -.01em; }
+h2 { font-size: var(--t-h2); margin: 2.25rem 0 .9rem; }
+h3 { font-size: var(--t-h3); margin: 0 0 .5rem; }
+
+a { color: var(--odkaz); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
-h1 { font-size: 1.6rem; margin: 0 0 .25rem; }
-h2 { font-size: 1.2rem; margin: 2rem 0 .75rem; }
+:focus-visible { outline: 2px solid var(--odkaz); outline-offset: 2px; border-radius: 3px; }
 
-.hlavicka {
-  display: flex; gap: 1.5rem; align-items: center;
-  padding: .75rem 1rem; background: var(--plocha); border-bottom: 1px solid var(--okraj);
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
-.hlavicka .logo { font-weight: 700; color: var(--text); }
 
-.obsah { max-width: var(--max-sirka); margin: 0 auto; padding: 1.5rem 1rem 3rem; }
-.podtitul { color: var(--text-tlumeny); margin: 0 0 1rem; }
-.prazdne { color: var(--text-tlumeny); }
+.tlumene { color: var(--text-tlumeny); }
+.mala { font-size: var(--t-mala); }
 .nowrap { white-space: nowrap; }
+.cisla { font-variant-numeric: tabular-nums; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}

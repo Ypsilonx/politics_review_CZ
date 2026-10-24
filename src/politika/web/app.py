@@ -14,15 +14,36 @@ from politika.db.connection import get_connection
 
 WEB_DIR = Path(__file__).parent
 
-# Texty kódů z otevřených dat PSP.
+# Texty kódů z otevřených dat PSP. Pořadí určuje i pořadí štítků a teček v půlkruhu.
 HLAS_TEXT = {
     "A": "Ano", "B": "Ne", "N": "Ne", "C": "Zdržel se", "K": "Zdržel se",
     "F": "Nehlasoval", "@": "Nepřihlášen", "M": "Omluven", "W": "Před slibem",
 }
 VYSLEDEK_TEXT = {"A": "Přijato", "R": "Zamítnuto"}
 
+# Horní menu: (cesta, název). Úprava pořadí nebo názvů sekcí zde.
+MENU = [
+    ("/prehled", "Přehled"),
+    ("/sledovani", "Sledovaní"),
+    ("/poslanci", "Poslanci"),
+    ("/hlasovani", "Hlasování"),
+    ("/zakony", "Zákony"),
+    ("/schuze", "Schůze"),
+    ("/statistiky", "Statistiky"),
+    ("/mapa", "Mapa"),
+]
+
+def datum_cz(iso: str | None) -> str:
+    """Filtr šablon: ISO datum ``2026-10-23`` → ``23. 10. 2026`` (prázdný vstup → ``""``)."""
+    if not iso:
+        return ""
+    r, m, d = iso[:10].split("-")
+    return f"{int(d)}. {int(m)}. {r}"
+
+
 templates = Jinja2Templates(directory=WEB_DIR / "templates")
-templates.env.globals.update(HLAS_TEXT=HLAS_TEXT, VYSLEDEK_TEXT=VYSLEDEK_TEXT)
+templates.env.globals.update(HLAS_TEXT=HLAS_TEXT, VYSLEDEK_TEXT=VYSLEDEK_TEXT, MENU=MENU)
+templates.env.filters["datum"] = datum_cz
 
 
 def get_db() -> Iterator[sqlite3.Connection]:
@@ -36,16 +57,17 @@ def get_db() -> Iterator[sqlite3.Connection]:
 
 def create_app() -> FastAPI:
     """Sestaví aplikaci s routami a statickými soubory."""
-    from politika.web.routes import hlasovani, poslanci
+    from politika.web.routes import hlasovani, poslanci, pripravujeme
 
     app = FastAPI(title="Sledování poslanců")
     app.mount("/static", StaticFiles(directory=WEB_DIR / "static"), name="static")
     app.include_router(poslanci.router)
     app.include_router(hlasovani.router)
+    app.include_router(pripravujeme.router)
 
     @app.get("/", include_in_schema=False)
     def index() -> RedirectResponse:
-        """Úvodní stránka – do T5 (proud novinek) přesměruje na seznam poslanců."""
+        """Úvodní stránka – do T9 (Přehled) přesměruje na seznam poslanců."""
         return RedirectResponse("/poslanci")
 
     return app

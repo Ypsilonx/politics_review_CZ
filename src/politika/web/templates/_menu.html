@@ -1,0 +1,29 @@
+<header class="lista">
+  <a class="znacka" href="/" aria-label="Sledování poslanců – úvod">
+    <svg class="znacka-ikona" viewBox="0 0 20 12" aria-hidden="true">
+      <circle cx="3" cy="9" r="2.4" class="z-ano"/><circle cx="10" cy="3.5" r="2.4" class="z-zdrzel"/><circle cx="17" cy="9" r="2.4" class="z-ne"/>
+    </svg>
+    <span>Sledování poslanců</span>
+  </a>
+
+  <button class="tlacitko-menu" type="button" aria-expanded="false" aria-controls="hlavni-menu">
+    <span class="sr-only">Menu</span><svg viewBox="0 0 20 14" aria-hidden="true"><path d="M0 1h20M0 7h20M0 13h20"/></svg>
+  </button>
+
+  <div class="lista-obsah" id="hlavni-menu">
+    <nav class="menu" aria-label="Hlavní menu">
+      {% set aktualni = request.url.path %}
+      {% for cesta, nazev in MENU %}
+        <a href="{{ cesta }}" {% if aktualni.startswith(cesta) or (cesta == "/poslanci" and aktualni.startswith("/poslanec/")) %}aria-current="page"{% endif %}>{{ nazev }}</a>
+      {% endfor %}
+    </nav>
+    <form class="hledani-lista" action="/poslanci" role="search">
+      <label class="sr-only" for="hledat-vse">Hledat poslance</label>
+      <input id="hledat-vse" type="search" name="q" placeholder="Hledat poslance…">
+    </form>
+    <button class="prepinac-rezimu" type="button" data-prepnout-rezim aria-label="Přepnout světlý / tmavý režim">
+      <svg class="ikona-mesic" viewBox="0 0 20 20" aria-hidden="true"><path d="M15.5 12.8A7 7 0 0 1 7.2 4.5a7 7 0 1 0 8.3 8.3z"/></svg>
+      <svg class="ikona-slunce" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.6"/><path d="M10 1.5v2.2M10 16.3v2.2M1.5 10h2.2M16.3 10h2.2M4 4l1.6 1.6M14.4 14.4 16 16M4 16l1.6-1.6M14.4 5.6 16 4"/></svg>
+    </button>
+  </div>
+</header>

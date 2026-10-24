@@ -1,8 +1,14 @@
-<ul class="seznam-poslancu">
+<p class="tlumene mala">{{ poslanci | length }} poslanců</p>
+<ul class="mrizka-poslancu">
   {% for p in poslanci %}
-  <li><a href="/poslanec/{{ p.id_poslanec }}">{{ p.jmeno }}</a>
-      <span class="klub">{{ p.klub or "nezařazený" }}</span></li>
+  <li>
+    <a class="karta-poslance" href="/poslanec/{{ p.id_poslanec }}">
+      <span class="avatar" aria-hidden="true">{{ p.jmeno[0] }}{{ p.prijmeni[0] }}</span>
+      <span><span class="jmeno">{{ p.jmeno }}</span>
+            <span class="tlumene mala">{{ p.klub or "nezařazený" }}</span></span>
+    </a>
+  </li>
   {% else %}
-  <li class="prazdne">Nikdo nenalezen.</li>
+  <li class="tlumene">Žádný poslanec tomu neodpovídá. Zkus jen část příjmení.</li>
   {% endfor %}
 </ul>

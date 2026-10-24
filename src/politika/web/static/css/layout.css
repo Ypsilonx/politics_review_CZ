@@ -1,0 +1,63 @@
+/* Rozložení: horní lišta s menu, obsah, patička. Mobilní breakpoint je 860px (uprav níže). */
+
+.lista {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; gap: 1.25rem;
+  padding: .55rem 1.25rem;
+  background: color-mix(in srgb, var(--plocha) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--okraj);
+}
+
+.znacka { display: flex; align-items: center; gap: .55rem; color: var(--text); font-weight: 700; white-space: nowrap; }
+.znacka:hover { text-decoration: none; }
+.znacka-ikona { width: 26px; height: 16px; }
+.z-ano { fill: var(--ano); } .z-ne { fill: var(--ne); } .z-zdrzel { fill: var(--zdrzel); }
+
+.lista-obsah { display: flex; align-items: center; gap: 1rem; flex: 1; }
+
+.menu { display: flex; gap: .15rem; flex: 1; }
+.menu a {
+  padding: .45rem .7rem; border-radius: var(--radius-maly);
+  color: var(--text-tlumeny); font-size: .9375rem;
+}
+.menu a:hover { color: var(--text); background: var(--plocha-2); text-decoration: none; }
+.menu a[aria-current="page"] { color: var(--text); background: var(--zvyrazneni); }
+
+.hledani-lista input {
+  width: 13rem; padding: .45rem .7rem; font: inherit; font-size: .9375rem;
+  color: var(--text); background: var(--plocha-2);
+  border: 1px solid var(--okraj); border-radius: var(--radius-maly);
+}
+
+.prepinac-rezimu, .tlacitko-menu {
+  display: grid; place-items: center; width: 2.25rem; height: 2.25rem;
+  color: var(--text-tlumeny); background: none; border: 1px solid var(--okraj);
+  border-radius: var(--radius-maly); cursor: pointer;
+}
+.prepinac-rezimu:hover, .tlacitko-menu:hover { color: var(--text); }
+.prepinac-rezimu svg, .tlacitko-menu svg {
+  width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round;
+}
+.ikona-mesic { fill: currentColor !important; stroke: none !important; }
+[data-theme="dark"] .ikona-mesic, [data-theme="light"] .ikona-slunce { display: none; }
+.tlacitko-menu { display: none; margin-left: auto; }
+
+.obsah { width: 100%; max-width: var(--max-sirka); margin: 0 auto; padding: 2rem 1.25rem 4rem; flex: 1; }
+
+.paticka {
+  padding: 1.25rem; text-align: center; font-size: var(--t-mala);
+  color: var(--text-tlumeny); border-top: 1px solid var(--okraj);
+}
+
+@media (max-width: 860px) {
+  .lista { flex-wrap: wrap; padding: .55rem 1rem; }
+  .tlacitko-menu { display: grid; }
+  .lista-obsah { display: none; flex-basis: 100%; flex-direction: column; align-items: stretch; gap: .75rem; padding: .5rem 0 .75rem; }
+  .tlacitko-menu[aria-expanded="true"] + .lista-obsah { display: flex; }
+  .menu { flex-direction: column; }
+  .menu a { padding: .6rem .7rem; font-size: 1rem; }
+  .hledani-lista input { width: 100%; }
+  .prepinac-rezimu { align-self: flex-start; }
+  .obsah { padding: 1.5rem 1rem 3rem; }
+}

@@ -2,9 +2,33 @@
 {% set jmeno = [poslanec.titul_pred, poslanec.jmeno, poslanec.prijmeni, poslanec.titul_za] | select | join(" ") %}
 {% block title %}{{ jmeno }} – Sledování poslanců{% endblock %}
 {% block content %}
-<h1>{{ jmeno }}</h1>
-<p class="podtitul">{{ poslanec.klub or "nezařazený" }}
-  · <a href="https://www.psp.cz/sqw/detail.sqw?id={{ poslanec.id_osoba }}" target="_blank" rel="noopener">profil na psp.cz</a></p>
+<header class="profil-hlavicka">
+  <span class="avatar avatar-velky" aria-hidden="true">{{ poslanec.jmeno[0] }}{{ poslanec.prijmeni[0] }}</span>
+  <div>
+    <h1>{{ jmeno }}</h1>
+    <div class="profil-meta">
+      <span class="stitek">{{ poslanec.klub or "nezařazený" }}</span>
+      {% if poslanec.mandat_do %}<span class="stitek">Mandát skončil {{ poslanec.mandat_do | datum }}</span>{% endif %}
+      {% if poslanec.email %}<a href="mailto:{{ poslanec.email }}">{{ poslanec.email }}</a>{% endif %}
+      <a href="https://www.psp.cz/sqw/detail.sqw?id={{ poslanec.id_osoba }}" target="_blank" rel="noopener">Profil na psp.cz</a>
+    </div>
+  </div>
+</header>
+
+<section class="panel" aria-labelledby="nadpis-slozeni">
+  <h3 id="nadpis-slozeni">Jak hlasuje <span class="tlumene mala">({{ celkem }} hlasování)</span></h3>
+  <div class="pruh" role="img" aria-label="{% for t, text, n in slozeni %}{{ text }} {{ n }}{% if not loop.last %}, {% endif %}{% endfor %}">
+    {% for trida, text, pocet in slozeni if pocet %}
+      <span class="p-{{ trida }}" style="width: {{ (100 * pocet / celkem) | round(2) }}%"></span>
+    {% endfor %}
+  </div>
+  <div class="legenda">
+    {% for trida, text, pocet in slozeni %}
+      <span class="hlas hlas-{{ trida }}">{{ text }} <b class="cisla">{{ pocet }}</b>
+        <span class="tlumene">{{ (100 * pocet / celkem) | round | int if celkem else 0 }} %</span></span>
+    {% endfor %}
+  </div>
+</section>
 
 <h2>Hlasování</h2>
 <table class="tabulka">
@@ -12,19 +36,19 @@
   <tbody>
   {% for h in hlasovani %}
     <tr>
-      <td class="nowrap">{{ h.datum }} {{ h.cas }}</td>
+      <td class="nowrap cisla tlumene">{{ h.datum | datum }} {{ h.cas }}</td>
       <td class="nowrap"><a href="/hlasovani/{{ h.id_hlasovani }}">{{ h.schuze }}/{{ h.cislo }}</a></td>
-      <td>{{ h.popis or "–" }}{% if h.tisk_ct %} <span class="tisk">tisk {{ h.tisk_ct }}</span>{% endif %}</td>
+      <td class="popis">{{ h.popis or "–" }}{% if h.tisk_ct %} <span class="tlumene mala">tisk {{ h.tisk_ct }}</span>{% endif %}</td>
       <td><span class="hlas hlas-{{ h.hlas }}">{{ HLAS_TEXT.get(h.hlas, h.hlas) }}</span></td>
-      <td>{{ VYSLEDEK_TEXT.get(h.vysledek, h.vysledek) }}</td>
+      <td class="vysledek-{{ h.vysledek }}">{{ VYSLEDEK_TEXT.get(h.vysledek, h.vysledek) }}</td>
     </tr>
   {% else %}
-    <tr><td colspan="5" class="prazdne">Žádná hlasování.</td></tr>
+    <tr><td colspan="5" class="tlumene">Poslanec zatím nehlasoval.</td></tr>
   {% endfor %}
   </tbody>
 </table>
-<nav class="strankovani">
-  {% if strana > 1 %}<a href="?strana={{ strana - 1 }}">← novější</a>{% endif %}
-  {% if dalsi %}<a href="?strana={{ strana + 1 }}">starší →</a>{% endif %}
+<nav class="strankovani" aria-label="Stránkování">
+  <span>{% if strana > 1 %}<a href="?strana={{ strana - 1 }}">Novější hlasování</a>{% endif %}</span>
+  <span>{% if dalsi %}<a href="?strana={{ strana + 1 }}">Starší hlasování</a>{% endif %}</span>
 </nav>
 {% endblock %}

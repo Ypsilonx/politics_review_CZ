@@ -1,26 +1,46 @@
 {% extends "base.html" %}
 {% block title %}Hlasování {{ h.schuze }}/{{ h.cislo }} – Sledování poslanců{% endblock %}
 {% block content %}
-<h1>Hlasování {{ h.cislo }}, {{ h.schuze }}. schůze</h1>
-<p class="podtitul">{{ h.datum }} {{ h.cas }}
-  · <a href="{{ psp_url }}" target="_blank" rel="noopener">zdroj na psp.cz</a></p>
+<section class="hlasovani-hlavicka">
+  <div>
+    <p class="tlumene">{{ h.schuze }}. schůze, hlasování {{ h.cislo }}, {{ h.datum | datum }} v {{ h.cas }}</p>
+    <h1 class="predmet">{{ h.popis or "Předmět hlasování nezjištěn" }}</h1>
+    {% if h.tisk_ct %}<p><span class="stitek">Sněmovní tisk {{ h.tisk_ct }}</span></p>{% endif %}
+    <p class="vysledek vysledek-{{ h.vysledek }}">{{ VYSLEDEK_TEXT.get(h.vysledek, h.vysledek) }}</p>
+    <p class="cisla-hlasovani cisla">
+      <span class="hlas hlas-A">Pro <b>{{ h.pro }}</b></span>
+      <span class="hlas hlas-B">Proti <b>{{ h.proti }}</b></span>
+      <span class="hlas hlas-K">Zdrželo se <b>{{ h.zdrzel }}</b></span>
+      <span class="tlumene">Přihlášeno {{ h.prihlaseno }}, potřeba {{ h.kvorum }}</span>
+    </p>
+    <p class="mala"><a href="{{ psp_url }}" target="_blank" rel="noopener">Zdroj na psp.cz</a></p>
+  </div>
 
-<section class="karta">
-  <p class="predmet">{{ h.popis or "Předmět hlasování nezjištěn" }}
-    {% if h.tisk_ct %}<span class="tisk">sněmovní tisk {{ h.tisk_ct }}</span>{% endif %}</p>
-  <p class="vysledek vysledek-{{ h.vysledek }}">{{ VYSLEDEK_TEXT.get(h.vysledek, h.vysledek) }}</p>
-  <p>Pro {{ h.pro }} · proti {{ h.proti }} · zdrželo se {{ h.zdrzel }} · nehlasovalo {{ h.nehlasoval }}
-     · přihlášeno {{ h.prihlaseno }} (kvórum {{ h.kvorum }})</p>
+  <svg class="snemovna" viewBox="-4 -4 208 108" role="img"
+       aria-label="Rozložení hlasů ve sněmovně: pro {{ h.pro }}, proti {{ h.proti }}">
+    {% for s in sedadla %}
+      <a href="/poslanec/{{ s.id_poslanec }}">
+        <circle cx="{{ s.x | round(2) }}" cy="{{ s.y | round(2) }}" r="{{ s.r | round(2) }}" class="s-{{ s.hlas }}">
+          <title>{{ s.jmeno }} ({{ s.klub }}): {{ HLAS_TEXT.get(s.hlas, s.hlas) }}</title>
+        </circle>
+      </a>
+    {% endfor %}
+    <text class="snemovna-vysledek" x="100" y="94" text-anchor="middle">{{ h.pro }} : {{ h.proti }}</text>
+    <text class="snemovna-popisek" x="100" y="103" text-anchor="middle">pro : proti</text>
+  </svg>
 </section>
 
-<h2>Po klubech</h2>
+<h2>Jak hlasovaly kluby</h2>
 <div class="kluby">
 {% for k in kluby %}
   <details class="klub-blok">
-    <summary><strong>{{ k.zkratka }}</strong>
-      {% for kod in HLAS_TEXT if kod in k.pocty %}
-        <span class="hlas hlas-{{ kod }}">{{ HLAS_TEXT[kod] }} {{ k.pocty[kod] }}</span>
-      {% endfor %}
+    <summary>
+      <strong>{{ k.zkratka }}</strong>
+      <span class="klub-pocty cisla">
+        {% for kod in HLAS_TEXT if kod in k.pocty %}
+          <span class="hlas hlas-{{ kod }}">{{ HLAS_TEXT[kod] }} {{ k.pocty[kod] }}</span>
+        {% endfor %}
+      </span>
     </summary>
     <ul>
     {% for p in k.poslanci %}

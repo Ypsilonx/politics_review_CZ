@@ -4,18 +4,24 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Sledování poslanců{% endblock %}</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' rx='3' fill='%231f5fbf'/></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 12'><circle cx='3' cy='9' r='2.4' fill='%234CB782'/><circle cx='10' cy='3.5' r='2.4' fill='%23D9A83E'/><circle cx='17' cy='9' r='2.4' fill='%23E5604F'/></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap">
   <link rel="stylesheet" href="/static/css/base.css">
+  <link rel="stylesheet" href="/static/css/layout.css">
   <link rel="stylesheet" href="/static/css/komponenty.css">
-  <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
+  {# Synchronně v hlavičce: nastaví režim dřív, než se stránka vykreslí (bez probliknutí). #}
+  <script src="/static/js/tema.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js" defer></script>
 </head>
 <body>
-  <header class="hlavicka">
-    <a class="logo" href="/">Sledování poslanců</a>
-    <nav><a href="/poslanci">Poslanci</a></nav>
-  </header>
+  {% include "_menu.html" %}
   <main class="obsah">
     {% block content %}{% endblock %}
   </main>
+  <footer class="paticka">
+    Data: <a href="https://www.psp.cz/sqw/hp.sqw?k=1300" target="_blank" rel="noopener">otevřená data Poslanecké sněmovny PČR</a>
+  </footer>
 </body>
 </html>
