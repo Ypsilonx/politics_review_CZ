@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Hlasování {{ h.schuze }}/{{ h.cislo }} – Sledování poslanců{% endblock %}
+{% block content %}
+<h1>Hlasování {{ h.cislo }}, {{ h.schuze }}. schůze</h1>
+<p class="podtitul">{{ h.datum }} {{ h.cas }}
+  · <a href="{{ psp_url }}" target="_blank" rel="noopener">zdroj na psp.cz</a></p>
+
+<section class="karta">
+  <p class="predmet">{{ h.popis or "Předmět hlasování nezjištěn" }}
+    {% if h.tisk_ct %}<span class="tisk">sněmovní tisk {{ h.tisk_ct }}</span>{% endif %}</p>
+  <p class="vysledek vysledek-{{ h.vysledek }}">{{ VYSLEDEK_TEXT.get(h.vysledek, h.vysledek) }}</p>
+  <p>Pro {{ h.pro }} · proti {{ h.proti }} · zdrželo se {{ h.zdrzel }} · nehlasovalo {{ h.nehlasoval }}
+     · přihlášeno {{ h.prihlaseno }} (kvórum {{ h.kvorum }})</p>
+</section>
+
+<h2>Po klubech</h2>
+<div class="kluby">
+{% for k in kluby %}
+  <details class="klub-blok">
+    <summary><strong>{{ k.zkratka }}</strong>
+      {% for kod in HLAS_TEXT if kod in k.pocty %}
+        <span class="hlas hlas-{{ kod }}">{{ HLAS_TEXT[kod] }} {{ k.pocty[kod] }}</span>
+      {% endfor %}
+    </summary>
+    <ul>
+    {% for p in k.poslanci %}
+      <li><a href="/poslanec/{{ p.id_poslanec }}">{{ p.jmeno }}</a>
+          <span class="hlas hlas-{{ p.hlas }}">{{ HLAS_TEXT.get(p.hlas, p.hlas) }}</span></li>
+    {% endfor %}
+    </ul>
+  </details>
+{% endfor %}
+</div>
+{% endblock %}

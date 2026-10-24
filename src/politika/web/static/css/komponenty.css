@@ -1,0 +1,43 @@
+/* Komponenty: vyhledávání, seznamy, tabulka hlasování, štítky hlasů, karty. */
+
+.hledani {
+  width: 100%; max-width: 420px; padding: .6rem .8rem; font: inherit;
+  border: 1px solid var(--okraj); border-radius: 8px; margin: .5rem 0 1rem;
+}
+
+.seznam-poslancu { list-style: none; padding: 0; margin: 0; columns: 3 260px; }
+.seznam-poslancu li { padding: .2rem 0; break-inside: avoid; }
+.klub, .tisk { color: var(--text-tlumeny); font-size: .85em; margin-left: .35rem; }
+
+.tabulka { width: 100%; border-collapse: collapse; background: var(--plocha); }
+.tabulka th, .tabulka td { padding: .5rem .6rem; border-bottom: 1px solid var(--okraj); text-align: left; vertical-align: top; }
+.tabulka th { font-size: .85rem; color: var(--text-tlumeny); font-weight: 600; }
+
+.hlas { display: inline-block; padding: 0 .45rem; border-radius: 999px; font-size: .85em; font-weight: 600;
+        border: 1px solid currentColor; white-space: nowrap; }
+.hlas-A { color: var(--ano); }
+.hlas-B, .hlas-N { color: var(--ne); }
+.hlas-C, .hlas-K { color: var(--zdrzel); }
+.hlas-F, .hlas-\@, .hlas-M, .hlas-W { color: var(--nepritomen); }
+
+.karta { background: var(--plocha); border: 1px solid var(--okraj); border-radius: 10px; padding: 1rem 1.25rem; }
+.predmet { font-size: 1.1rem; font-weight: 600; margin-top: 0; }
+.vysledek { font-weight: 700; }
+.vysledek-A { color: var(--ano); }
+.vysledek-R { color: var(--ne); }
+
+.kluby { display: grid; gap: .5rem; }
+.klub-blok { background: var(--plocha); border: 1px solid var(--okraj); border-radius: 8px; padding: .5rem .75rem; }
+.klub-blok summary { cursor: pointer; display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; }
+.klub-blok ul { columns: 3 220px; padding-left: 1rem; }
+
+.strankovani { display: flex; justify-content: space-between; margin-top: 1rem; }
+
+/* Mobil: tabulka hlasování jako karty. Breakpoint uprav zde. */
+@media (max-width: 640px) {
+  .tabulka thead { display: none; }
+  .tabulka tr { display: grid; grid-template-columns: auto 1fr; gap: .1rem .6rem;
+                padding: .6rem; border-bottom: 1px solid var(--okraj); }
+  .tabulka td { border: 0; padding: 0; }
+  .tabulka td:nth-child(3) { grid-column: 1 / -1; }
+}

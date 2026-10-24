@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Sledování poslanců{% endblock %}</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' rx='3' fill='%231f5fbf'/></svg>">
+  <link rel="stylesheet" href="/static/css/base.css">
+  <link rel="stylesheet" href="/static/css/komponenty.css">
+  <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
+</head>
+<body>
+  <header class="hlavicka">
+    <a class="logo" href="/">Sledování poslanců</a>
+    <nav><a href="/poslanci">Poslanci</a></nav>
+  </header>
+  <main class="obsah">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

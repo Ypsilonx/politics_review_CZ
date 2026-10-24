@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Poslanci – Sledování poslanců{% endblock %}
+{% block content %}
+<h1>Poslanci</h1>
+<input class="hledani" type="search" name="q" value="{{ q }}" placeholder="Hledat jméno…"
+       autofocus hx-get="/poslanci" hx-trigger="input changed delay:250ms, search"
+       hx-target="#seznam" hx-push-url="true">
+<div id="seznam">{% include "_poslanci_seznam.html" %}</div>
+{% endblock %}

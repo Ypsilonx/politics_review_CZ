@@ -1,0 +1,43 @@
+/* Základ: proměnné (barvy, písmo, šířky) – uprav si podle vkusu zde. */
+:root {
+  --pozadi: #f6f7f9;
+  --plocha: #ffffff;
+  --text: #1d2330;
+  --text-tlumeny: #5d6677;
+  --okraj: #dde1e8;
+  --akcent: #1f5fbf;
+  --ano: #1e7d3c;
+  --ne: #b3261e;
+  --zdrzel: #8a6d00;
+  --nepritomen: #8a8f99;
+  --pismo: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --velikost-pisma: 16px;
+  --max-sirka: 1100px;
+  /* Breakpoint pro mobil (640px) je v komponenty.css – CSS proměnná v @media nefunguje. */
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--pozadi);
+  color: var(--text);
+  font: var(--velikost-pisma)/1.5 var(--pismo);
+}
+
+a { color: var(--akcent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+h1 { font-size: 1.6rem; margin: 0 0 .25rem; }
+h2 { font-size: 1.2rem; margin: 2rem 0 .75rem; }
+
+.hlavicka {
+  display: flex; gap: 1.5rem; align-items: center;
+  padding: .75rem 1rem; background: var(--plocha); border-bottom: 1px solid var(--okraj);
+}
+.hlavicka .logo { font-weight: 700; color: var(--text); }
+
+.obsah { max-width: var(--max-sirka); margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+.podtitul { color: var(--text-tlumeny); margin: 0 0 1rem; }
+.prazdne { color: var(--text-tlumeny); }
+.nowrap { white-space: nowrap; }

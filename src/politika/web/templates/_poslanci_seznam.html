@@ -1,0 +1,8 @@
+<ul class="seznam-poslancu">
+  {% for p in poslanci %}
+  <li><a href="/poslanec/{{ p.id_poslanec }}">{{ p.jmeno }}</a>
+      <span class="klub">{{ p.klub or "nezařazený" }}</span></li>
+  {% else %}
+  <li class="prazdne">Nikdo nenalezen.</li>
+  {% endfor %}
+</ul>
