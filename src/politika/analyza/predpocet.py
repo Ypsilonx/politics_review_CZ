@@ -23,7 +23,8 @@ def prepocitej(conn: sqlite3.Connection) -> dict[str, int]:
                    (SELECT z.id_organ FROM zarazeni z JOIN organ o ON o.id_organ = z.id_organ
                      WHERE z.id_osoba = p.id_osoba AND o.id_typ = {ID_TYP_KLUB}
                        AND o.id_nadrazeny = h.id_organ
-                       AND z.od <= h.datum AND (z.do IS NULL OR z.do >= h.datum) LIMIT 1)
+                       AND z.od <= h.datum AND (z.do IS NULL OR z.do >= h.datum)
+                     ORDER BY z.od DESC LIMIT 1)
             FROM hlas hl
             JOIN hlasovani h ON h.id_hlasovani = hl.id_hlasovani
             JOIN poslanec p ON p.id_poslanec = hl.id_poslanec

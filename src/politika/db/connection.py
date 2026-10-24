@@ -8,7 +8,7 @@ SCHEMA_PATH = Path(__file__).with_name("schema.sql")
 # Zvýšit při změně sloupců tabulek z otevřených dat. Při nesouladu se tyto tabulky
 # zahodí a vytvoří znovu (data doplní příští `politika import`); tabulky aplikace
 # (dokumenty, předměty hlasování, sledovaní) zůstanou.
-SCHEMA_VERZE = 2
+SCHEMA_VERZE = 3
 TABULKY_OPENDATA = [
     "osoba", "poslanec", "organ", "zarazeni", "schuze", "bod", "tisk", "hlasovani", "hlas",
     "druh_tisku", "stav_tisku", "typ_stavu", "hist_tisku", "prechod", "typ_akce", "predkladatel",
@@ -23,7 +23,9 @@ def get_connection(db_path: Path) -> sqlite3.Connection:
     Řádky vrací jako ``sqlite3.Row`` (přístup podle názvu sloupce).
     """
     db_path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(db_path)
+    # FastAPI volá otevření, endpoint i zavření závislosti v různých vláknech threadpoolu;
+    # spojení přitom patří vždy jen jednomu požadavku, takže sdílení mezi vlákny nehrozí.
+    conn = sqlite3.connect(db_path, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode = WAL")
     if conn.execute("PRAGMA user_version").fetchone()[0] != SCHEMA_VERZE:

@@ -1,11 +1,8 @@
 """Příkazová řádka aplikace (``uv run politika <příkaz>``)."""
 
 import argparse
-import sqlite3
 import sys
 from collections.abc import Callable
-
-import httpx
 
 from politika import config
 from politika.analyza.predpocet import prepocitej
@@ -26,10 +23,14 @@ class Prubeh:
         self.chyb = 0
 
     def krok(self, popis: str, funkce: Callable[[], object]) -> None:
-        """Provede krok a vypíše ``popis: výsledek``; síťová chyba nebo chyba souboru se jen zapíše."""
+        """Provede krok a vypíše ``popis: výsledek``; jakoukoli chybu kroku zapíše a pokračuje.
+
+        Chytá se záměrně vše (i chyby parsování změněné stránky psp.cz) – jeden vadný tisk
+        nebo schůze nesmí zastavit obnovu ostatních. Celý běh pak skončí s kódem 1.
+        """
         try:
             print(f"{popis}: {funkce()}", flush=True)
-        except (httpx.HTTPError, OSError, sqlite3.OperationalError) as chyba:
+        except Exception as chyba:  # noqa: BLE001 – viz docstring
             self.chyb += 1
             print(f"{popis}: CHYBA {type(chyba).__name__}: {chyba}", flush=True)
 
@@ -71,13 +72,18 @@ def _stahni_dokumenty(prubeh: Prubeh, schuze: list[int], tisky: list[int],
     conn.close()
 
 
-def _paruj(schuze: list[int]) -> None:
+def _paruj(prubeh: Prubeh, schuze: list[int]) -> None:
     """Spáruje hlasování se stenozáznamem (bez výběru všechny schůze aktuálního období)."""
     conn = get_connection(config.DB_PATH)
-    for s in schuze or schuze_obdobi(conn):
+
+    def jedna(s: int) -> str:
+        """Spáruje jednu schůzi a vrátí souhrn pro výpis."""
         v = paruj_schuzi(conn, s)
-        print(f"schůze {s}: {v.s_uryvkem}/{v.hlasovani} hlasování s předmětem, "
-              f"{v.s_dokumentem} s dokumentem návrhů")
+        return (f"{v.s_uryvkem}/{v.hlasovani} hlasování s předmětem, "
+                f"{v.s_dokumentem} s dokumentem návrhů")
+
+    for s in schuze or schuze_obdobi(conn):
+        prubeh.krok(f"párování schůze {s}", lambda s=s: jedna(s))
     conn.close()
 
 
@@ -96,7 +102,9 @@ def cmd_stahni_dokumenty(args: argparse.Namespace) -> None:
 
 def cmd_paruj(args: argparse.Namespace) -> None:
     """Spáruje hlasování se stenozáznamem."""
-    _paruj(args.schuze)
+    prubeh = Prubeh()
+    _paruj(prubeh, args.schuze)
+    sys.exit(1 if prubeh.chyb else 0)
 
 
 def cmd_obnova(args: argparse.Namespace) -> None:
@@ -107,7 +115,7 @@ def cmd_obnova(args: argparse.Namespace) -> None:
     prubeh = Prubeh()
     prubeh.krok("import otevřených dat", lambda: sum(_importuj(stahnout=True).values()))
     _stahni_dokumenty(prubeh, [], [], kancelare=False, fotky=False)
-    _paruj([])
+    _paruj(prubeh, [])
     sys.exit(1 if prubeh.chyb else 0)
 
 

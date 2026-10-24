@@ -21,10 +21,11 @@ def aktualni_obdobi(conn: sqlite3.Connection) -> int:
 
 
 def klub_sql(osoba: str, obdobi: str, datum: str) -> str:
-    """Poddotaz na zkratku klubu, jehož byla osoba členem k datu.
+    """Poddotaz na zkratku klubu, jehož byla osoba členem k datu (v den přestupu ten nový).
 
     Parametry jsou výrazy SQL z nadřazeného dotazu (např. ``p.id_osoba``, ``h.datum``).
     """
     return f"""(SELECT o.zkratka FROM zarazeni z JOIN organ o ON o.id_organ = z.id_organ
         WHERE z.id_osoba = {osoba} AND o.id_typ = {ID_TYP_KLUB} AND o.id_nadrazeny = {obdobi}
-          AND z.od <= {datum} AND (z.do IS NULL OR z.do >= {datum}) LIMIT 1)"""
+          AND z.od <= {datum} AND (z.do IS NULL OR z.do >= {datum})
+        ORDER BY z.od DESC LIMIT 1)"""

@@ -11,8 +11,11 @@ SNIMEK = {
     "poslanci/zarazeni.unl": "6743|1750|0|2025-10-08 00||||\n6743|99|1|2025-10-08 00||||\n",
     "schuze/schuze.unl": "897|174|34|2026-10-13 09||2026-10-01 10|1|\n"
                          "897|174|34|2026-10-13 09|2026-10-23 23|2026-10-23 23||\n",
+    # Stejný bod 34 třikrát: pozvánka se stejným id, schválený pořad a pozvánka s jiným id
+    # (jiný tisk) – po importu zbude jen schválený pořad.
     "schuze/bod_schuze.unl": "59435|897|43353|1|34|Novela|/st 231/||1|1|0||0||ČT|\n"
-                             "59435|897|43353|1|34|Novela|/st 231/||7||0||0||o ČT|\n",
+                             "59435|897|43353|1|34|Novela|/st 231/||7||0||0||o ČT|\n"
+                             "58161|897|43000|1|34|Jiný tisk|/st 76/||1|1|0||0||jiný|\n",
     "tisky/tisky.unl": "43353|1|12|231|0|1||174||ministr|Novela|19.06.2026|19.06.2026|"
                        "23:59||Úplný název|||||||||\n",
     "hl-2025ps/hl2025s.unl": "88870|174|34|281|34|23.10.2026|23:28|148|0|7|4|159|80|N|A|"
@@ -38,6 +41,7 @@ def test_import_je_idempotentni_a_bere_schvaleny_porad(tmp_path):
 
     assert prvni == druhy
     assert prvni["zarazeni"] == 1  # řádek funkce se neimportuje
+    assert prvni["bod"] == 1  # pozvánka ustoupila schválenému pořadu
     radek = conn.execute("SELECT do, zkratka FROM schuze JOIN bod USING (id_schuze)").fetchone()
     assert tuple(radek) == ("2026-10-23", "o ČT")
     h = conn.execute("SELECT datum, vysledek FROM hlasovani").fetchone()

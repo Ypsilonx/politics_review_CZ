@@ -125,7 +125,10 @@ TABULKY: list[Tabulka] = [
         {
             "id_bod": _s("id_bod"), "id_schuze": _s("id_schuze"), "id_tisk": _s("id_tisk"),
             "cislo": _s("bod"), "nazev": _s("uplny_naz"), "zkratka": _s("zkratka"),
+            "pozvanka": lambda r: 1 if r["pozvanka"] == "1" else 0,
         },
+        # Týž id_bod bývá v pozvánce i ve schváleném pořadu, často s jiným číslem bodu –
+        # platí schválený pořad (řazení zajistí, že INSERT OR REPLACE vloží ten poslední).
         poradi=_bez_pozvanky_naposled,
     ),
     Tabulka(
@@ -337,4 +340,11 @@ def importuj_vse(conn: sqlite3.Connection, adresar: Path) -> dict[str, int]:
                 sql, ([f(r) for f in t.mapovani.values()] for r in _radky(adresar, t))
             )
             pocty[t.cil] = conn.execute(f"SELECT COUNT(*) FROM {t.cil}").fetchone()[0]
+        # Bod z pozvánky a bod schváleného pořadu mají různé id_bod, ale stejné číslo ve schůzi;
+        # hlasování se váže na číslo, takže pozvánka musí ustoupit schválenému pořadu.
+        conn.execute("""
+            DELETE FROM bod WHERE pozvanka = 1 AND EXISTS (
+                SELECT 1 FROM bod b2 WHERE b2.id_schuze = bod.id_schuze AND b2.cislo = bod.cislo
+                  AND b2.pozvanka = 0)""")
+        pocty["bod"] = conn.execute("SELECT COUNT(*) FROM bod").fetchone()[0]
     return pocty

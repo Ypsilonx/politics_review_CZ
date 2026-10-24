@@ -8,7 +8,7 @@ Neautorizované úseky se po ``OBNOVA_NEAUTORIZOVANYCH`` stáhnou znovu.
 """
 
 import sqlite3
-from datetime import timedelta
+from datetime import date, timedelta
 
 import httpx
 
@@ -50,24 +50,31 @@ def potrebne_useky(conn: sqlite3.Connection, schuze: int) -> list[int]:
     dny = {h["datum"] for h in hlasovani}
     existujici = {u["turn"] for u in useky}
     potrebne: set[int] = set()
-    s_casem = []
+    s_casem = []  # (turn, začátek, konec) v absolutních minutách – úsek přes půlnoc i hlasování po ní
     for u in useky:
         if u["od_t"] is None or u["do_t"] is None or u["od_t"] < 0 or u["do_t"] < 0:
             if u["datum"] in dny:
                 potrebne.add(u["turn"])
             continue
-        konec = u["do_t"] + 1440 if u["do_t"] < u["od_t"] else u["do_t"]  # přes půlnoc
-        s_casem.append((u["turn"], u["datum"], u["od_t"], konec))
+        delka = (u["do_t"] - u["od_t"]) % 1440  # přes půlnoc je do_t < od_t
+        zacatek = _absolutni_minuta(u["datum"], u["od_t"])
+        s_casem.append((u["turn"], zacatek, zacatek + delka))
     for h in hlasovani:
-        minuta = _minuty(h["cas"])
-        pokryvajici = [t for t, d, od, do in s_casem if d == h["datum"] and od <= minuta <= do]
+        cas = _absolutni_minuta(h["datum"], _minuty(h["cas"]))
+        pokryvajici = [t for t, od, do in s_casem if od <= cas <= do]
         if not pokryvajici:
-            # Čas hlasování v metadatech chybí (typicky pozdě večer): nejbližší dřívější úsek.
-            drivejsi = [(od, t) for t, d, od, _ in s_casem if d == h["datum"] and od <= minuta]
+            # Čas hlasování v metadatech chybí (typicky pozdě večer): nejbližší dřívější úsek
+            # téhož jednacího dne (nejvýš 24 h zpět).
+            drivejsi = [(od, t) for t, od, _ in s_casem if 0 <= cas - od < 1440]
             pokryvajici = [max(drivejsi)[1]] if drivejsi else []
         for t in pokryvajici:
             potrebne |= {t - 1, t, t + 1}
     return sorted(potrebne & existujici)
+
+
+def _absolutni_minuta(datum: str, minuta: int) -> int:
+    """Minuta od počátku letopočtu – časy různých dnů jdou porovnávat (i přes půlnoc)."""
+    return date.fromisoformat(datum).toordinal() * 1440 + minuta
 
 
 def stahni_steno_schuze(conn: sqlite3.Connection, st: Stahovac, schuze: int) -> int:

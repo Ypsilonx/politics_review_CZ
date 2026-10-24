@@ -85,3 +85,29 @@ def test_nahradni_otazka_bez_formuli():
         "\nHlasování číslo 7, přihlášeno 171 poslanců, pro 97, proti 12.")
     assert predmet.otazka == ("Posledním z těch tří nových bodů je sněmovní tisk 285, novela "
                               "zákona o doplňkovém penzijním spoření, druhé čtení.")
+
+
+def test_oznaceni_z_uvozujici_vety_ne_z_drivejsi_zminky():
+    """Regrese z revize: hlasování 88684, 88697 (34. schůze) měla označení z dřívější zmínky."""
+    assert rozpoznej_predmet(
+        "Tudíž je nehlasovatelný pozměňovací návrh A1. Dále budeme hlasovat o pozměňovacím "
+        "návrhu D2, což je návrh poslankyně Fialové. Zahajuji hlasování. Kdo je pro?"
+        "\nHlasování číslo 95.").oznaceni == "D2"
+    assert rozpoznej_predmet(
+        "Vzhledem k tomu, že byl přijat návrh B, budeme nyní hlasovat o návrhu A2 pana poslance "
+        "Petra Bendla. Zahajuji hlasování.\nHlasování číslo 108.").oznaceni == "A2"
+
+
+def test_legislativne_technicke_upravy_a_vypis_procedury():
+    """Regrese z revize: hlasování 88695 – výpis procedury s návrhem B nesmí přebít LTÚ."""
+    predmet = rozpoznej_predmet(
+        "2. návrh B – pokud nebude přijat návrh B, jsou dále nehlasovatelné návrhy A1 až A3; "
+        "3. návrh A2. Takže nejprve hlasovat o legislativně technických úpravách, které jsem "
+        "přečetla v obecné rozpravě. Místopředseda PSP Jiří Barták: Zahajuji hlasování."
+        "\nHlasování číslo 106.")
+    assert (predmet.druh, predmet.oznaceni) == ("legislativne_technicke", None)
+
+
+def test_jako_celek():
+    assert rozpoznej_predmet("Budeme hlasovat grémium jako celek. Zahajuji hlasování."
+                             "\nHlasování číslo 4.").druh == "celek"

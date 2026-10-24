@@ -31,3 +31,12 @@ def test_pdf_verze_tisku():
     assert pdf_tisku(precti_html(DATA / "tiskt_213_3.html")) == [
         ("/sqw/text/orig2.sqw?idd=281676", "t021303.pdf")
     ]
+
+
+def test_bezpecny_nazev_souboru():
+    from politika.dokumenty.tisky import bezpecny_nazev
+
+    assert bezpecny_nazev("t021303.pdf") == "t021303.pdf"
+    assert bezpecny_nazev("../../evil.pdf") == "evil.pdf"
+    assert bezpecny_nazev("C:\\Windows\\x.docx") == "x.docx"
+    assert bezpecny_nazev("..") is None and bezpecny_nazev("  ") is None

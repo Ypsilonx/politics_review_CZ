@@ -23,6 +23,7 @@ VYSLEDEK_TEXT = {"A": "Přijato", "R": "Zamítnuto"}
 # Druh předmětu hlasování zjištěný ze stenozáznamu (parovani.steno.Predmet.druh).
 DRUH_TEXT = {
     "pozmenovaci": "Pozměňovací návrh",
+    "legislativne_technicke": "Legislativně technické úpravy",
     "celek": "Návrh jako celek",
     "proceduralni": "Procedurální hlasování",
     "jine": "Hlasování",

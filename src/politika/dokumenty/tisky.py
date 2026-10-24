@@ -8,6 +8,7 @@ Samotné soubory jsou podle ``idd`` neměnné, stahují se jednou.
 
 import sqlite3
 from datetime import date, timedelta
+from pathlib import PurePosixPath
 
 from politika import config
 from politika.db.dotazy.spolecne import aktualni_obdobi
@@ -23,6 +24,15 @@ DNY_AKTIVITY = 60
 def _relativni(url: str) -> str:
     """Odstraní z URL doménu psp.cz, aby byl jeden dokument evidován pod jedním klíčem."""
     return url.removeprefix(PSP_URL)
+
+
+def bezpecny_nazev(nazev: str) -> str | None:
+    """Vrátí jen jméno souboru z textu odkazu (bez cesty); prázdné nebo „..“ → ``None``.
+
+    Název přichází ze stránky psp.cz – nesmí umožnit zápis mimo složku dat.
+    """
+    jmeno = PurePosixPath(nazev.replace("\\", "/")).name.strip()
+    return jmeno if jmeno and jmeno not in (".", "..") else None
 
 
 def _evidovano(conn: sqlite3.Connection, url: str) -> bool:
@@ -83,12 +93,15 @@ def stahni_soubory_tisku(conn: sqlite3.Connection, st: Stahovac, ct: int,
         if not _evidovano(conn, url_verze):
             zaeviduj(conn, url_verze, "tisk_verze", cesta, ct=ct, ct1=ct1)
         for url_pdf, nazev in pdf_tisku(precti_html(cesta)):
-            soubor(url_pdf, slozka / nazev, "tisk_pdf", ct1=ct1, nazev=nazev)
+            if (nazev := bezpecny_nazev(nazev)) is not None:
+                soubor(url_pdf, slozka / nazev, "tisk_pdf", ct1=ct1, nazev=nazev)
 
     for navrh in pozmenovaci_navrhy(historie):
-        cil = config.DATA_DIR / "dokumenty" / "sd" / navrh.soubor
+        if (nazev := bezpecny_nazev(navrh.soubor)) is None:
+            continue
+        cil = config.DATA_DIR / "dokumenty" / "sd" / nazev
         soubor(navrh.url, cil, "sd_docx", cislo_sd=navrh.cislo_sd, id_osoba=navrh.id_osoba,
-               nazev=navrh.soubor, popis=navrh.popis, datum=navrh.datum)
+               nazev=nazev, popis=navrh.popis, datum=navrh.datum)
         if cil.suffix.lower() == ".docx":
             docx_na_html(cil)
     conn.commit()

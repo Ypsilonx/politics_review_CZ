@@ -117,7 +117,7 @@ def _zkrat(text: str) -> str:
 class Predmet:
     """Rozpoznaný předmět hlasování.
 
-    :param druh: ``pozmenovaci`` | ``celek`` | ``proceduralni`` | ``jine``
+    :param druh: ``pozmenovaci`` | ``legislativne_technicke`` | ``celek`` | ``proceduralni`` | ``jine``
     :param oznaceni: označení pozměňovacího návrhu (``B2``, ``A1.3``) nebo ``None``
     :param otazka: věta, kterou předsedající hlasování uvedl (z textu úryvku), nebo ``None``
     """
@@ -132,12 +132,13 @@ _OZNACENI = r"[A-Z](?:\d+(?:\.\d+)*)?"
 _POZMENOVACI = re.compile(
     r"(?:pozměňovací\w*\s+návrh\w*|návrh\w*|bod\w*)\s+(?:pod\s+(?:písmenem\s+)?)?"
     rf"({_OZNACENI}(?:\s*(?:,|a|až|-|–)\s*{_OZNACENI})*)(?![\wÁ-ž])")
-_CELEK = re.compile(r"jako\s+celk|o\s+celém\s+návrhu|závěrečn\w+\s+hlasován|ve\s+znění\s+schválených",
+_CELEK = re.compile(r"jako\s+cel(?:ek|ku)|o\s+celém\s+návrhu|závěrečn\w+\s+hlasován|ve\s+znění\s+schválených",
                     re.IGNORECASE)
 _PROCEDURALNI = re.compile(
     r"procedurální|přestávk|pauz|přeruš|pevn\w+\s+hlasován|námitk|zpochybn|po\s+21\.|po\s+19\."
     r"|pořad\w*\s+schůze|zkrácen\w+\s+lhůt|vrácení|zamítnutí\s+návrhu|lhůt\w+\s+k\s+projednání",
     re.IGNORECASE)
+_LEGISLATIVNE_TECHNICKE = re.compile(r"legislativně\s*-?\s*technick", re.IGNORECASE)
 _UVOD_HLASOVANI = re.compile(
     r"[^.!?\n]*(?:hlasujeme|budeme\s+hlasovat|nechám\s+hlasovat|hlasovat\s+o|"
     r"kdo\s+souhlasí\s+s|o\s+návrhu|o\s+tomto\s+návrhu)[^.!?\n]*[.!?]?", re.IGNORECASE)
@@ -175,8 +176,13 @@ def rozpoznej_predmet(uryvek: str) -> Predmet:
     otazky = _UVOD_HLASOVANI.findall(jadro)
     otazka = _bez_recnika(" ".join(otazky[-1].split())) if otazky else _nahradni_otazka(jadro)
 
-    if m := _POZMENOVACI.search(jadro):
-        return Predmet("pozmenovaci", " ".join(m.group(1).split()), otazka)
+    # O čem se hlasuje, říká uvozující věta; dřívější zmínky v jádru („byl přijat návrh B“,
+    # výpis procedury) jsou jen kontext. Bez uvozující věty se bere poslední označení v jádru.
+    if otazky and _LEGISLATIVNE_TECHNICKE.search(otazka):
+        return Predmet("legislativne_technicke", None, otazka)
+    nalezy = list(_POZMENOVACI.finditer(otazka if otazky else jadro))
+    if nalezy:
+        return Predmet("pozmenovaci", " ".join(nalezy[-1].group(1).split()), otazka)
     if _CELEK.search(jadro):
         return Predmet("celek", None, otazka)
     if _PROCEDURALNI.search(jadro):

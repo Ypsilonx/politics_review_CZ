@@ -57,7 +57,8 @@ CREATE TABLE IF NOT EXISTS bod (
     id_tisk   INTEGER,
     cislo     INTEGER,
     nazev     TEXT,
-    zkratka   TEXT
+    zkratka   TEXT,
+    pozvanka  INTEGER                -- 1 = bod z pozvánky (návrh pořadu), jinak schválený pořad
 );
 CREATE INDEX IF NOT EXISTS ix_bod_schuze ON bod (id_schuze, cislo);
 
