@@ -16,7 +16,7 @@ DB_PATH = Path(os.environ.get("POLITIKA_DB", DATA_DIR / "politika.db"))
 OPENDATA_URL = "https://www.psp.cz/eknih/cdrom/opendata/"
 # Volební období, jehož hlasování se importují (název ZIPu hl-{OBDOBI}.zip).
 OBDOBI = "2025ps"
-OPENDATA_SADY = ["poslanci", f"hl-{OBDOBI}", "schuze", "tisky", "steno", "sd"]
+OPENDATA_SADY = ["poslanci", f"hl-{OBDOBI}", "schuze", "tisky", "steno", "sd", "sbirka"]
 
 # Identifikace klienta vůči psp.cz (bez osobních údajů).
 USER_AGENT = "politika-osobni-prehled/0.1"

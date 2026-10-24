@@ -1,7 +1,7 @@
 """Test importu otevřených dat na miniaturním snímku."""
 
 from politika.db.connection import get_connection
-from politika.importer.opendata import importuj_vse
+from politika.importer.opendata import TABULKY, importuj_vse
 
 # Jeden až dva řádky na soubor ve formátu PSP (schůze a bod i s řádkem pozvánky).
 SNIMEK = {
@@ -23,6 +23,10 @@ SNIMEK = {
 
 
 def test_import_je_idempotentni_a_bere_schvaleny_porad(tmp_path):
+    for t in TABULKY:  # ostatní tabulky snímku prázdné
+        if "*" not in t.soubor:
+            (tmp_path / t.soubor).parent.mkdir(parents=True, exist_ok=True)
+            (tmp_path / t.soubor).write_bytes(b"")
     for soubor, obsah in SNIMEK.items():
         cesta = tmp_path / soubor
         cesta.parent.mkdir(parents=True, exist_ok=True)

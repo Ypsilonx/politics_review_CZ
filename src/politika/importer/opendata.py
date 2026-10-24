@@ -137,8 +137,10 @@ TABULKY: list[Tabulka] = [
         "tisk",
         {
             "id_tisk": _s("id_tisk"), "ct": _s("ct"), "id_obdobi": _s("id_org_obd"),
+            "id_druh": _s("id_druh"), "id_stav": _s("id_stav"), "navrhovatel": _s("navrhovatel"),
             "nazev": _s("nazev_tisku"), "uplny_nazev": _s("uplny_nazev_tisku"),
             "predlozeno": lambda r: datum_cz(r["predlozeno"]),
+            "rozeslano": lambda r: datum_cz(r["rozeslano"]),
         },
     ),
     Tabulka(
@@ -162,6 +164,108 @@ TABULKY: list[Tabulka] = [
         {"id_poslanec": _s("id_poslanec"), "id_hlasovani": _s("id_hlasovani"),
          "vysledek": _s("vysledek")},
     ),
+    Tabulka(
+        f"hl-{config.OBDOBI}/omluvy.unl",
+        ["id_organ", "id_poslanec", "den", "od", "do"],
+        "omluva",
+        {"id_organ": _s("id_organ"), "id_poslanec": _s("id_poslanec"),
+         "den": lambda r: datum_cz(r["den"]), "od": _s("od"), "do": _s("do")},
+        # Soubor obsahuje omluvy všech období (přes milion řádků) – stačí aktuální.
+        filtr=lambda r: r["den"] is not None and r["den"][-4:] >= config.OBDOBI[:4],
+    ),
+    Tabulka(
+        "poslanci/zarazeni.unl",
+        ["id_osoba", "id_of", "cl_funkce", "od_o", "do_o", "od_f", "do_f"],
+        "zarazeni_funkce",
+        {"id_osoba": _s("id_osoba"), "id_funkce": _s("id_of"),
+         "od": lambda r: datum_iso(r["od_o"]), "do": lambda r: datum_iso(r["do_o"])},
+        filtr=lambda r: r["cl_funkce"] == "1",
+    ),
+    Tabulka(
+        "poslanci/funkce.unl",
+        ["id_funkce", "id_organ", "id_typ_funkce", "nazev_funkce_cz", "priorita"],
+        "funkce",
+        {"id_funkce": _s("id_funkce"), "id_organ": _s("id_organ"),
+         "id_typ": _s("id_typ_funkce"), "nazev": _s("nazev_funkce_cz")},
+    ),
+    Tabulka(
+        "poslanci/typ_funkce.unl",
+        ["id_typ_funkce", "id_typ_org", "typ_funkce_cz", "typ_funkce_en", "priorita",
+         "typ_funkce_obecny"],
+        "typ_funkce",
+        {"id_typ": _s("id_typ_funkce"), "nazev": _s("typ_funkce_cz")},
+    ),
+    Tabulka(
+        "poslanci/typ_organu.unl",
+        ["id_typ_org", "typ_id_typ_org", "nazev_typ_org_cz", "nazev_typ_org_en",
+         "typ_org_obecny", "priorita"],
+        "typ_organu",
+        {"id_typ": _s("id_typ_org"), "nazev": _s("nazev_typ_org_cz")},
+    ),
+    Tabulka(
+        "tisky/druh_tisku.unl", ["id_druh", "druh_t", "nazev_druh"], "druh_tisku",
+        {"id_druh": _s("id_druh"), "nazev": _s("nazev_druh")},
+    ),
+    Tabulka(
+        "tisky/stavy.unl", ["id_stav", "id_typ", "id_druh", "popis", "lhuta", "lhuta_where"],
+        "stav_tisku",
+        {"id_stav": _s("id_stav"), "id_typ": _s("id_typ"), "popis": _s("popis")},
+    ),
+    Tabulka(
+        "tisky/typ_stavu.unl", ["id_typ", "popis_stavu"], "typ_stavu",
+        {"id_typ": _s("id_typ"), "popis": _s("popis_stavu")},
+    ),
+    Tabulka(
+        "tisky/hist.unl",
+        ["id_hist", "id_tisk", "datum", "id_hlas", "id_prechod", "id_bod", "schuze", "usnes_ps",
+         "orgv_id_posl", "ps_id_posl", "orgv_p_usn", "zaver_publik", "zaver_sb_castka",
+         "zaver_sb_cislo", "poznamka"],
+        "hist_tisku",
+        {"id_hist": _s("id_hist"), "id_tisk": _s("id_tisk"), "datum": lambda r: datum_iso(r["datum"]),
+         "id_hlas": _s("id_hlas"), "id_prechod": _s("id_prechod"), "schuze": _s("schuze")},
+    ),
+    Tabulka(
+        "tisky/prechody.unl", ["id_prechod", "odkud", "kam", "id_akce", "typ_prechodu"], "prechod",
+        {"id_prechod": _s("id_prechod"), "odkud": _s("odkud"), "kam": _s("kam"),
+         "id_akce": _s("id_akce")},
+    ),
+    Tabulka(
+        "tisky/typ_akce.unl", ["id_akce", "popis_akce"], "typ_akce",
+        {"id_akce": _s("id_akce"), "popis": _s("popis_akce")},
+    ),
+    Tabulka(
+        "tisky/predkladatel.unl", ["id_tisk", "id_osoba", "poradi", "typ"], "predkladatel",
+        {"id_tisk": _s("id_tisk"), "id_osoba": _s("id_osoba"), "poradi": _s("poradi")},
+    ),
+    Tabulka(
+        "sbirka/sbirka.unl",
+        ["id_sbirka", "cislo", "rok", "id_druh", "id_tisk", "datum", "c7", "c8", "c9", "c10"],
+        "sbirka",
+        {"id_sbirka": _s("id_sbirka"), "cislo": _s("cislo"), "rok": _s("rok"),
+         "id_tisk": _s("id_tisk"), "datum": lambda r: datum_cz(r["datum"])},
+    ),
+    Tabulka(
+        "sd/sd_dokument.unl",
+        ["id_dokument", "id_organ", "cislo", "typ", "nazev", "predkladatel", "ct", "id_osoba",
+         "datum"],
+        "sd",
+        {"id_dokument": _s("id_dokument"), "id_organ": _s("id_organ"), "cislo": _s("cislo"),
+         "typ": _s("typ"), "nazev": _s("nazev"), "ct": _s("ct"), "id_osoba": _s("id_osoba"),
+         "datum": lambda r: datum_iso(r["datum"])},
+    ),
+    Tabulka(
+        "steno/steno.unl",
+        ["id_steno", "id_org", "schuze", "turn", "od_steno", "jd", "od_t", "do_t"],
+        "steno",
+        {"id_steno": _s("id_steno"), "id_organ": _s("id_org"), "schuze": _s("schuze"),
+         "turn": _s("turn"), "datum": _s("od_steno"), "den": _s("jd"), "od_t": _s("od_t"),
+         "do_t": _s("do_t")},
+    ),
+    Tabulka(
+        "steno/rec.unl", ["id_steno", "id_osoba", "aname", "id_bod", "druh"], "vystoupeni",
+        {"id_steno": _s("id_steno"), "id_osoba": _s("id_osoba"), "aname": _s("aname"),
+         "id_bod": _s("id_bod"), "druh": _s("druh")},
+    ),
 ]
 
 
@@ -178,7 +282,8 @@ def stahni_opendata(cil: Path, sady: list[str], client: httpx.Client | None = No
     cil.mkdir(parents=True, exist_ok=True)
     vlastni = client is None
     # retries opakuje jen nepovedené navázání spojení (psp.cz občas neodpoví na první pokus).
-    client = client or httpx.Client(headers={"User-Agent": config.USER_AGENT}, timeout=120,
+    client = client or httpx.Client(headers={"User-Agent": config.USER_AGENT},
+                                    timeout=httpx.Timeout(120, connect=5),
                                     transport=httpx.HTTPTransport(retries=3))
     slozky = []
     try:

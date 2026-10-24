@@ -8,9 +8,12 @@ authors = [
 ]
 requires-python = ">=3.14"
 dependencies = [
+    "beautifulsoup4>=4.15.0",
     "fastapi>=0.162.0",
     "httpx>=0.28.1",
     "jinja2>=3.1.6",
+    "mammoth>=1.13.0",
+    "python-multipart>=0.0.32",
     "uvicorn>=0.54.0",
 ]
 
