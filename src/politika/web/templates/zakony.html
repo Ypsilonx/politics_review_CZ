@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Zákony – Sledování poslanců{% endblock %}
+{% block content %}
+<h1>Zákony a sněmovní tisky</h1>
+<p class="tlumene">Návrhy zákonů a další tisky aktuálního období, seřazené podle poslední události.</p>
+
+<form class="filtry" method="get" action="/zakony"
+      hx-get="/zakony" hx-target="#seznam" hx-trigger="input changed delay:300ms from:input[type=search], change" hx-push-url="true">
+  <label class="filtr-hledani">Hledat <input type="search" name="q" value="{{ q }}" placeholder="číslo tisku nebo část názvu"></label>
+  <label>Druh
+    <select name="druh">
+      <option value="">vše</option>
+      {% for d in druhy %}<option value="{{ d.id_druh }}" {% if druh == d.id_druh %}selected{% endif %}>{{ d.nazev }} ({{ d.pocet }})</option>{% endfor %}
+    </select>
+  </label>
+  <label class="zaskrtavatko"><input type="checkbox" name="hlasovane" value="true" {% if hlasovane %}checked{% endif %}> Jen s hlasováním</label>
+  <noscript><button type="submit">Filtrovat</button></noscript>
+</form>
+
+<div id="seznam">{% include "_zakony_seznam.html" %}</div>
+{% endblock %}

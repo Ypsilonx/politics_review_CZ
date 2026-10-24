@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% from "_makra.html" import tabulka_hlasovani, strankovani %}
+{% block title %}Hlasování – Sledování poslanců{% endblock %}
+{% block content %}
+<h1>Hlasování</h1>
+<p class="tlumene">Všechna hlasování sněmovny v aktuálním volebním období, od nejnovějšího.</p>
+
+<form class="filtry" method="get" action="/hlasovani">
+  <label>Schůze <input type="number" name="schuze" min="1" value="{{ filtry.schuze }}" placeholder="vše"></label>
+  <label>Výsledek
+    <select name="vysledek">
+      <option value="">vše</option>
+      <option value="A" {% if filtry.vysledek == "A" %}selected{% endif %}>přijato</option>
+      <option value="R" {% if filtry.vysledek == "R" %}selected{% endif %}>zamítnuto</option>
+    </select>
+  </label>
+  <label>O čem
+    <select name="druh">
+      <option value="">vše</option>
+      {% for kod, text in DRUH_TEXT.items() if kod != "jine" %}
+        <option value="{{ kod }}" {% if filtry.druh == kod %}selected{% endif %}>{{ text }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label class="zaskrtavatko"><input type="checkbox" name="tesna" value="true" {% if filtry.tesna %}checked{% endif %}>
+    Jen těsná <span class="tlumene mala">(rozhodlo ≤ {{ tesne_rozpeti }} hlasů)</span></label>
+  <button type="submit">Filtrovat</button>
+</form>
+
+{{ tabulka_hlasovani(hlasovani, prazdne="Filtrům neodpovídá žádné hlasování.") }}
+{{ strankovani(request, strana, dalsi) }}
+{% endblock %}

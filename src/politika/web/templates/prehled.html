@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% from "_makra.html" import strankovani, predmet_kratce %}
+{% block title %}Přehled – Sledování poslanců{% endblock %}
+{% block content %}
+<div class="prehled">
+  <div class="prehled-hlavni">
+    <h1>Přehled</h1>
+    {% if sledovanych %}
+      <p class="tlumene">Hlasování tvých sledovaných, od nejnovějšího. Zvýrazněné je hlasování proti vlastnímu klubu a chybění u hlasování o celém návrhu.</p>
+      {% include "_proud.html" %}
+      {{ strankovani(request, strana, dalsi) }}
+    {% else %}
+      <section class="panel prazdny-stav">
+        <h2>Zatím nikoho nesleduješ</h2>
+        <p>Vyber si poslance nebo celý klub a tady uvidíš, jak hlasovali a o čem. U poslance klikni v profilu na <b>Sledovat</b>, kluby a vlastní skupiny přidáš na stránce Sledovaní.</p>
+        <p><a class="tlacitko" href="/poslanci">Vybrat poslance</a> <a class="tlacitko druhotne" href="/sledovani">Sledovat klub</a></p>
+      </section>
+    {% endif %}
+  </div>
+
+  <aside class="prehled-bok">
+    <section class="panel">
+      <h3>Data</h3>
+      <p class="mala">Poslední hlasování v datech: <b>{{ posledni_data | datum }}</b>.
+        <span class="tlumene">Sněmovna zveřejňuje data jednou denně, nejnovější hlasování se objeví s denním zpožděním.</span></p>
+      {% if posledni_schuze %}
+      <p class="mala">Poslední schůze: <a href="/schuze/{{ posledni_schuze.cislo }}">{{ posledni_schuze.cislo }}. schůze</a>,
+        {{ posledni_schuze.hlasovani }} hlasování{% if not posledni_schuze.do %}, probíhá{% endif %}.</p>
+      {% endif %}
+    </section>
+    <section class="panel">
+      <h3>Hlasování o celých návrzích</h3>
+      <ul class="seznam-cisty">
+        {% for h in zaverecna %}
+        <li><a href="/hlasovani/{{ h.id_hlasovani }}">{{ h.popis }}</a>
+          <span class="mala vysledek-{{ h.vysledek }}">{{ VYSLEDEK_TEXT.get(h.vysledek, h.vysledek) }} {{ h.pro }}:{{ h.proti }}</span>
+          <span class="tlumene mala">{{ h.datum | datum }}</span></li>
+        {% else %}
+        <li class="tlumene mala">Zatím nejsou spárovaná se stenozáznamem.</li>
+        {% endfor %}
+      </ul>
+    </section>
+  </aside>
+</div>
+{% endblock %}

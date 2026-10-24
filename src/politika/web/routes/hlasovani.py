@@ -1,4 +1,4 @@
-"""Routy: detail jednoho hlasování."""
+"""Routy: seznam hlasování s filtry a detail jednoho hlasování."""
 
 import sqlite3
 
@@ -26,6 +26,23 @@ def _sedadla(kluby: list[dotazy.Klub]) -> list[dict]:
         {"x": s.x, "y": s.y, "r": s.r, "klub": klub, **p}
         for s, (klub, p) in zip(rozlozeni_sedadel(len(poradi)), poradi)
     ]
+
+
+NA_STRANKU = 50
+
+
+@router.get("/hlasovani", response_class=HTMLResponse)
+def seznam(request: Request, schuze: int | None = None, vysledek: str = "", tesna: bool = False,
+           druh: str = "", strana: int = 1, conn: sqlite3.Connection = Depends(get_db)):
+    """Všechna hlasování od nejnovějšího; filtry schůze, výsledek, těsná, druh předmětu."""
+    strana = max(strana, 1)
+    radky = dotazy.seznam_hlasovani(conn, schuze, vysledek or None, tesna, druh or None,
+                                    NA_STRANKU + 1, (strana - 1) * NA_STRANKU)
+    filtry = {"schuze": schuze or "", "vysledek": vysledek, "tesna": tesna, "druh": druh}
+    return templates.TemplateResponse(request, "hlasovani_seznam.html", {
+        "hlasovani": radky[:NA_STRANKU], "strana": strana, "dalsi": len(radky) > NA_STRANKU,
+        "filtry": filtry, "tesne_rozpeti": dotazy.TESNE_ROZPETI,
+    })
 
 
 @router.get("/hlasovani/{id_hlasovani}", response_class=HTMLResponse)

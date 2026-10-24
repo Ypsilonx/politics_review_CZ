@@ -30,6 +30,25 @@
   </svg>
 </section>
 
+<section class="panel predmet-panel" aria-labelledby="nadpis-predmet">
+  <h2 id="nadpis-predmet">O čem se hlasovalo</h2>
+  {% if h.predmet_druh %}
+    <p><span class="predmet-druh predmet-{{ h.predmet_druh }}">{{ DRUH_TEXT[h.predmet_druh] }}{% if h.predmet_oznaceni %} {{ h.predmet_oznaceni }}{% endif %}</span></p>
+    {% if h.predmet_otazka %}<blockquote class="otazka">{{ h.predmet_otazka }}</blockquote>{% endif %}
+    <details class="uryvek">
+      <summary>Celý úryvek ze stenozáznamu před hlasováním</summary>
+      <div class="uryvek-text">{{ h.predmet_uryvek }}</div>
+    </details>
+    <p class="odkazy-predmetu mala">
+      <a href="{{ PSP_URL }}{{ h.predmet_zdroj }}#h{{ h.cislo }}" target="_blank" rel="noopener">Stenozáznam na psp.cz</a>
+      {% if h.predmet_dokument %}<a href="{{ PSP_URL }}{{ h.predmet_dokument }}" target="_blank" rel="noopener">Pozměňovací návrhy k tisku (PDF)</a>{% endif %}
+      {% if not h.predmet_autorizovano %}<span class="tlumene">Přepis zatím neprošel autorizací řečníků.</span>{% endif %}
+    </p>
+  {% else %}
+    <p class="tlumene">Ve stenozáznamu se předmět zatím nenašel. Stenozáznam vychází se zpožděním několika hodin až dnů; do té doby ho najdeš jen ve <a href="{{ psp_url }}" target="_blank" rel="noopener">zdroji na psp.cz</a>.</p>
+  {% endif %}
+</section>
+
 <h2>Jak hlasovaly kluby</h2>
 <div class="kluby">
 {% for k in kluby %}

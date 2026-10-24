@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% from "_makra.html" import tabulka_hlasovani %}
+{% block title %}Tisk {{ t.ct }} – Sledování poslanců{% endblock %}
+{% block content %}
+<p class="tlumene">Sněmovní tisk {{ t.ct }}{% if t.druh %}, {{ t.druh | lower }}{% endif %}</p>
+<h1>{{ t.nazev }}</h1>
+<div class="profil-meta">
+  {% if t.stav %}<span class="stitek">{{ t.stav }}</span>{% endif %}
+  {% if sbirka %}<a href="https://www.e-sbirka.cz/sb/{{ sbirka.rok }}/{{ sbirka.cislo }}" target="_blank" rel="noopener">Sbírka zákonů č. {{ sbirka.cislo }}/{{ sbirka.rok }}</a>{% endif %}
+  <a href="{{ psp_url }}" target="_blank" rel="noopener">Průběh na psp.cz</a>
+</div>
+{% if t.uplny_nazev and t.uplny_nazev != t.nazev %}<p class="uplny-nazev">{{ t.uplny_nazev }}</p>{% endif %}
+
+<div class="mrizka-zakon">
+  <section class="panel">
+    <h3>Kdo předkládá</h3>
+    {% if predkladatele %}
+      <ul class="seznam-cisty">
+      {% for p in predkladatele %}
+        <li>{% if p.id_poslanec %}<a href="/poslanec/{{ p.id_poslanec }}">{{ p.jmeno }} {{ p.prijmeni }}</a>{% else %}{{ p.jmeno }} {{ p.prijmeni }}{% endif %}</li>
+      {% endfor %}
+      </ul>
+    {% else %}<p>{{ t.navrhovatel or "neuvedeno" }}</p>{% endif %}
+    <p class="tlumene mala">Předloženo {{ t.predlozeno | datum }}</p>
+  </section>
+
+  <section class="panel">
+    <h3>Znění</h3>
+    {% if dokumenty %}
+      <ul class="seznam-cisty">
+      {% for d in dokumenty %}
+        <li><a href="/dokumenty/{{ d.id }}">{{ d.popis }}</a> <span class="tlumene mala">{{ t.ct }}/{{ d.ct1 }}, PDF</span></li>
+      {% endfor %}
+      </ul>
+    {% else %}
+      <p class="tlumene">Soubory tisku zatím nejsou stažené. Najdeš je v <a href="{{ psp_url }}" target="_blank" rel="noopener">průběhu na psp.cz</a>.</p>
+    {% endif %}
+  </section>
+</div>
+
+{% if navrhy %}
+<h2>Pozměňovací návrhy</h2>
+<ul class="seznam-navrhu">
+  {% for n in navrhy %}
+  <li>
+    <span class="cisla tlumene">SD {{ n.cislo }}</span>
+    <span>{% if n.id_poslanec %}<a href="/poslanec/{{ n.id_poslanec }}">{{ n.jmeno }} {{ n.prijmeni }}</a>{% else %}{{ n.jmeno }} {{ n.prijmeni }}{% endif %}
+      {% if n.popis %}<span class="tlumene mala">{{ n.popis }}</span>{% endif %}</span>
+    <span class="nowrap">{% if n.id_souboru %}<a href="/dokumenty/{{ n.id_souboru }}">Zobrazit návrh</a>{% else %}<span class="tlumene mala">soubor nestažen</span>{% endif %}
+      <span class="tlumene mala">{{ n.datum | datum }}</span></span>
+  </li>
+  {% endfor %}
+</ul>
+{% endif %}
+
+<h2>Průběh projednávání</h2>
+{% if historie %}
+<ol class="casova-osa">
+  {% for u in historie %}
+  <li>
+    <span class="tlumene mala cisla">{{ u.datum | datum }}</span>
+    <span>{{ u.akce or u.stav or "událost" }}{% if u.schuze %} <span class="tlumene mala">({{ u.schuze }}. schůze)</span>{% endif %}
+      {% if u.id_hlas %} <a class="mala" href="/hlasovani/{{ u.id_hlas }}">hlasování</a>{% endif %}</span>
+  </li>
+  {% endfor %}
+</ol>
+{% else %}<p class="tlumene">Průběh zatím není evidován.</p>{% endif %}
+
+<h2>Hlasování k tisku</h2>
+{{ tabulka_hlasovani(hlasovani, s_bodem=False, prazdne="O tisku se zatím nehlasovalo.") }}
+{% endblock %}

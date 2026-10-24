@@ -1,54 +1,151 @@
 {% extends "base.html" %}
+{% from "_makra.html" import tabulka_hlasovani, strankovani, predmet_kratce %}
 {% set jmeno = [poslanec.titul_pred, poslanec.jmeno, poslanec.prijmeni, poslanec.titul_za] | select | join(" ") %}
 {% block title %}{{ jmeno }} – Sledování poslanců{% endblock %}
 {% block content %}
 <header class="profil-hlavicka">
-  <span class="avatar avatar-velky" aria-hidden="true">{{ poslanec.jmeno[0] }}{{ poslanec.prijmeni[0] }}</span>
+  {% if foto %}<img class="foto foto-velka" src="{{ foto }}" alt="" width="96" height="128">
+  {% else %}<span class="avatar avatar-velky" aria-hidden="true">{{ poslanec.jmeno[0] }}{{ poslanec.prijmeni[0] }}</span>{% endif %}
   <div>
     <h1>{{ jmeno }}</h1>
     <div class="profil-meta">
       <span class="stitek">{{ poslanec.klub or "nezařazený" }}</span>
+      {% if kraj %}<span>{{ kraj }}</span>{% endif %}
       {% if poslanec.mandat_do %}<span class="stitek">Mandát skončil {{ poslanec.mandat_do | datum }}</span>{% endif %}
+    </div>
+    <div class="profil-meta mala">
       {% if poslanec.email %}<a href="mailto:{{ poslanec.email }}">{{ poslanec.email }}</a>{% endif %}
       <a href="https://www.psp.cz/sqw/detail.sqw?id={{ poslanec.id_osoba }}" target="_blank" rel="noopener">Profil na psp.cz</a>
     </div>
+    {% with typ="poslanec", id=poslanec.id_poslanec, zpet=request.url.path %}{% include "_tlacitko_sledovat.html" %}{% endwith %}
   </div>
 </header>
 
-<section class="panel" aria-labelledby="nadpis-slozeni">
-  <h3 id="nadpis-slozeni">Jak hlasuje <span class="tlumene mala">({{ celkem }} hlasování)</span></h3>
-  <div class="pruh" role="img" aria-label="{% for t, text, n in slozeni %}{{ text }} {{ n }}{% if not loop.last %}, {% endif %}{% endfor %}">
-    {% for trida, text, pocet in slozeni if pocet %}
-      <span class="p-{{ trida }}" style="width: {{ (100 * pocet / celkem) | round(2) }}%"></span>
-    {% endfor %}
-  </div>
-  <div class="legenda">
-    {% for trida, text, pocet in slozeni %}
-      <span class="hlas hlas-{{ trida }}">{{ text }} <b class="cisla">{{ pocet }}</b>
-        <span class="tlumene">{{ (100 * pocet / celkem) | round | int if celkem else 0 }} %</span></span>
-    {% endfor %}
-  </div>
+<section class="dlazdice" aria-label="Přehled">
+  <a class="dlazdice-polozka" href="?zalozka=hlasovani">
+    <span class="dlazdice-cislo">{{ dochazka.procento | round | int }} %</span>
+    <span class="dlazdice-popis">účast na hlasování</span>
+    <span class="tlumene mala">{{ dochazka.neomluven }} neomluvených, {{ dochazka.omluven }} omluvených absencí</span>
+  </a>
+  <a class="dlazdice-polozka" href="?zalozka=proti-klubu">
+    <span class="dlazdice-cislo">{{ pocet_proti_klubu }}</span>
+    <span class="dlazdice-popis">× proti svému klubu</span>
+    <span class="tlumene mala">hlasoval opačně než většina klubu</span>
+  </a>
+  <a class="dlazdice-polozka" href="?zalozka=vystoupeni">
+    <span class="dlazdice-cislo">{{ vystoupeni | length }}</span>
+    <span class="dlazdice-popis">vystoupení</span>
+    <span class="tlumene mala">{% if vystoupeni %}naposledy {{ vystoupeni[0].datum | datum }}{% else %}zatím nepromluvil{% endif %}</span>
+  </a>
+  <a class="dlazdice-polozka" href="?zalozka=navrhy">
+    <span class="dlazdice-cislo">{{ navrhy | length }} / {{ pozmenovaci | length }}</span>
+    <span class="dlazdice-popis">návrhů zákonů / pozměňovacích</span>
+    <span class="tlumene mala">předložil nebo spolupředložil</span>
+  </a>
 </section>
 
-<h2>Hlasování</h2>
-<table class="tabulka">
-  <thead><tr><th>Datum</th><th>Hlasování</th><th>O čem</th><th>Hlasoval</th><th>Výsledek</th></tr></thead>
-  <tbody>
-  {% for h in hlasovani %}
-    <tr>
-      <td class="nowrap cisla tlumene">{{ h.datum | datum }} {{ h.cas }}</td>
-      <td class="nowrap"><a href="/hlasovani/{{ h.id_hlasovani }}">{{ h.schuze }}/{{ h.cislo }}</a></td>
-      <td class="popis">{{ h.popis or "–" }}{% if h.tisk_ct %} <span class="tlumene mala">tisk {{ h.tisk_ct }}</span>{% endif %}</td>
-      <td><span class="hlas hlas-{{ h.hlas }}">{{ HLAS_TEXT.get(h.hlas, h.hlas) }}</span></td>
-      <td class="vysledek-{{ h.vysledek }}">{{ VYSLEDEK_TEXT.get(h.vysledek, h.vysledek) }}</td>
-    </tr>
-  {% else %}
-    <tr><td colspan="5" class="tlumene">Poslanec zatím nehlasoval.</td></tr>
-  {% endfor %}
-  </tbody>
-</table>
-<nav class="strankovani" aria-label="Stránkování">
-  <span>{% if strana > 1 %}<a href="?strana={{ strana - 1 }}">Novější hlasování</a>{% endif %}</span>
-  <span>{% if dalsi %}<a href="?strana={{ strana + 1 }}">Starší hlasování</a>{% endif %}</span>
-</nav>
+<div class="profil-telo">
+  <div class="profil-hlavni">
+    <section class="panel" aria-labelledby="nadpis-slozeni">
+      <h3 id="nadpis-slozeni">Jak hlasuje <span class="tlumene mala">({{ celkem }} hlasování)</span></h3>
+      <div class="pruh" role="img" aria-label="{% for t, text, n in slozeni %}{{ text }} {{ n }}{% if not loop.last %}, {% endif %}{% endfor %}">
+        {% for trida, text, pocet in slozeni if pocet %}
+          <span class="p-{{ trida }}" style="width: {{ (100 * pocet / celkem) | round(2) }}%"></span>
+        {% endfor %}
+      </div>
+      <div class="legenda">
+        {% for trida, text, pocet in slozeni %}
+          <span class="hlas hlas-{{ trida }}">{{ text }} <b class="cisla">{{ pocet }}</b>
+            <span class="tlumene">{{ (100 * pocet / celkem) | round | int if celkem else 0 }} %</span></span>
+        {% endfor %}
+      </div>
+    </section>
+
+    <nav class="zalozky" aria-label="Části profilu">
+      {% for klic, nazev in zalozky %}
+        <a href="?zalozka={{ klic }}" {% if klic == zalozka %}aria-current="page"{% endif %}>{{ nazev }}</a>
+      {% endfor %}
+    </nav>
+
+    {% if zalozka == "hlasovani" %}
+      {{ tabulka_hlasovani(hlasovani, s_hlasem=True, prazdne="Poslanec zatím nehlasoval.") }}
+      {{ strankovani(request, strana, dalsi) }}
+
+    {% elif zalozka == "proti-klubu" %}
+      <p class="tlumene">Hlasování, kde hlasoval Ano/Ne a většina jeho klubu opačně. Nerozhodný klub ani zdržení se nepočítají.</p>
+      <table class="tabulka">
+        <thead><tr><th>Datum</th><th>Hlasování</th><th>O čem</th><th>On</th><th>Klub</th><th>Výsledek</th></tr></thead>
+        <tbody>
+        {% for h in proti_klubu %}
+          <tr>
+            <td class="nowrap cisla tlumene">{{ h.datum | datum }}</td>
+            <td class="nowrap"><a href="/hlasovani/{{ h.id_hlasovani }}">{{ h.schuze }}/{{ h.cislo }}</a></td>
+            <td class="popis">{{ h.popis or "–" }}{% if h.predmet_druh %}<div class="mala predmet-radek">{{ predmet_kratce(h) }}</div>{% endif %}</td>
+            <td><span class="hlas hlas-{{ h.hlas }}">{{ HLAS_TEXT[h.hlas] }}</span></td>
+            <td class="nowrap"><span class="hlas hlas-{{ h.vetsina }}">{{ HLAS_TEXT[h.vetsina] }}</span> <span class="tlumene mala cisla">{{ h.klub_ano }}:{{ h.klub_ne }}</span></td>
+            <td class="vysledek-{{ h.vysledek }}">{{ VYSLEDEK_TEXT.get(h.vysledek, h.vysledek) }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="6" class="tlumene">Vždy hlasoval s většinou svého klubu.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+
+    {% elif zalozka == "vystoupeni" %}
+      {% if vystoupeni %}
+      <ul class="seznam-vystoupeni">
+        {% for v in vystoupeni %}
+        <li>
+          <span class="tlumene mala cisla nowrap">{{ v.datum | datum }}{% if v.od_t and v.od_t > 0 %} {{ "%d:%02d" | format(v.od_t // 60, v.od_t % 60) }}{% endif %}</span>
+          <span>{{ v.bod_nazev or "Mimo projednávaný bod" }}{% if v.tisk_ct %} <a class="mala" href="/zakony/{{ v.tisk_ct }}">tisk {{ v.tisk_ct }}</a>{% endif %}</span>
+          <a class="mala nowrap" href="https://www.psp.cz/eknih/{{ obdobi_url }}/stenprot/{{ '%03d' | format(v.schuze) }}schuz/s{{ '%03d' | format(v.schuze) }}{{ '%03d' | format(v.turn) }}.htm#r{{ v.aname }}" target="_blank" rel="noopener">{{ v.schuze }}. schůze, přepis</a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}<p class="tlumene">V tomto období zatím nevystoupil jako řečník.</p>{% endif %}
+
+    {% elif zalozka == "navrhy" %}
+      <h3>Návrhy zákonů</h3>
+      {% if navrhy %}
+      <ul class="seznam-cisty seznam-navrhu-zakonu">
+        {% for t in navrhy %}
+        <li><a href="/zakony/{{ t.ct }}">Tisk {{ t.ct }}</a> {{ t.nazev }}
+          <span class="tlumene mala">{{ t.predlozeno | datum }}{% if t.stav %}, {{ t.stav }}{% endif %}</span></li>
+        {% endfor %}
+      </ul>
+      {% else %}<p class="tlumene">Nepředložil ani nespolupředložil žádný návrh zákona.</p>{% endif %}
+      <h3 class="odsazeni">Pozměňovací návrhy</h3>
+      {% if pozmenovaci %}
+      <ul class="seznam-cisty seznam-navrhu-zakonu">
+        {% for n in pozmenovaci %}
+        <li><span class="tlumene cisla">SD {{ n.cislo }}</span> k <a href="/zakony/{{ n.ct }}">tisku {{ n.ct }}</a> {{ n.tisk_nazev or "" }}
+          {% if n.popis %}<span class="tlumene mala">{{ n.popis }}</span>{% endif %}
+          {% if n.id_souboru %}<a class="mala" href="/dokumenty/{{ n.id_souboru }}">Zobrazit</a>{% endif %}
+          <span class="tlumene mala">{{ n.datum | datum }}</span></li>
+        {% endfor %}
+      </ul>
+      {% else %}<p class="tlumene">Nepodal žádný písemný pozměňovací návrh.</p>{% endif %}
+    {% endif %}
+  </div>
+
+  <aside class="profil-bok">
+    <section class="panel">
+      <h3>Výbory a funkce</h3>
+      {% if clenstvi %}
+      <ul class="seznam-cisty">
+        {% for c in clenstvi %}
+        <li>{{ c.nazev }}{% if c.funkce %} <span class="stitek">{{ c.funkce }}</span>{% endif %}</li>
+        {% endfor %}
+      </ul>
+      {% else %}<p class="tlumene">Není členem žádného výboru ani komise.</p>{% endif %}
+    </section>
+    {% if kancelar %}
+    <section class="panel">
+      <h3>Regionální kancelář</h3>
+      <p>{{ kancelar.adresa }}</p>
+      <a class="mala" href="/mapa?osoba={{ poslanec.id_osoba }}">Ukázat na mapě</a>
+    </section>
+    {% endif %}
+  </aside>
+</div>
 {% endblock %}

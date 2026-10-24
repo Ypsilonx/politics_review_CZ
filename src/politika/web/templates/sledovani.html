@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% from "_makra.html" import strankovani %}
+{% block title %}Sledovaní – Sledování poslanců{% endblock %}
+{% block content %}
+<h1>Sledovaní</h1>
+<p class="tlumene">Poslanci a kluby, které sleduješ, rozdělení do skupin. Jejich hlasování uvidíš níže a na Přehledu.</p>
+
+<div class="mrizka-sledovani">
+  <section class="panel">
+    <h3>Přidat poslance</h3>
+    <form method="get" action="/sledovani" class="radek-formulare">
+      <input type="hidden" name="skupina" value="{{ skupina }}">
+      <label class="sr-only" for="hledat-sledovat">Jméno poslance</label>
+      <input id="hledat-sledovat" type="search" name="q" value="{{ q }}" placeholder="Jméno nebo příjmení…">
+      <button type="submit">Hledat</button>
+    </form>
+    {% if q %}
+    <ul class="seznam-cisty nalezeni">
+      {% for p in nalezeni %}
+      <li>
+        <span><a href="/poslanec/{{ p.id_poslanec }}">{{ p.jmeno }}</a> <span class="tlumene mala">{{ p.klub or "nezařazený" }}</span></span>
+        <form method="post" action="/sledovani/pridat" class="radek-formulare">
+          <input type="hidden" name="typ" value="poslanec"><input type="hidden" name="id" value="{{ p.id_poslanec }}">
+          <input type="hidden" name="zpet" value="/sledovani?skupina={{ skupina | urlencode }}">
+          <label class="sr-only" for="skupina-{{ p.id_poslanec }}">Skupina</label>
+          <input id="skupina-{{ p.id_poslanec }}" name="skupina" list="seznam-skupin" value="{{ skupina or skupiny[0] }}">
+          <button type="submit">Přidat</button>
+        </form>
+      </li>
+      {% else %}<li class="tlumene">Nikdo nenalezen.</li>{% endfor %}
+    </ul>
+    {% endif %}
+  </section>
+
+  <section class="panel">
+    <h3>Přidat klub</h3>
+    <form method="post" action="/sledovani/pridat" class="radek-formulare">
+      <input type="hidden" name="typ" value="klub">
+      <input type="hidden" name="zpet" value="/sledovani?skupina={{ skupina | urlencode }}">
+      <label class="sr-only" for="klub">Klub</label>
+      <select id="klub" name="id">{% for k in kluby %}<option value="{{ k.id_organ }}">{{ k.zkratka }}</option>{% endfor %}</select>
+      <label class="sr-only" for="skupina-klub">Skupina</label>
+      <input id="skupina-klub" name="skupina" list="seznam-skupin" value="{{ skupina or skupiny[0] }}">
+      <button type="submit">Přidat</button>
+    </form>
+    <p class="tlumene mala">Novou skupinu založíš tak, že do pole skupiny napíšeš nový název.</p>
+  </section>
+</div>
+<datalist id="seznam-skupin">{% for s in skupiny %}<option value="{{ s }}">{% endfor %}</datalist>
+
+<h2>Skupiny</h2>
+{% if polozky %}
+<div class="mrizka-skupin">
+  {% for nazev, clenove in polozky | groupby("skupina") %}
+  <section class="panel">
+    <h3><a href="/sledovani?skupina={{ nazev | urlencode }}">{{ nazev }}</a> <span class="tlumene mala">({{ clenove | length }})</span></h3>
+    <ul class="seznam-cisty">
+      {% for c in clenove %}
+      <li class="radek-clena">
+        <span>{% if c.typ == "poslanec" %}<a href="/poslanec/{{ c.id }}">{{ c.nazev }}</a>{% else %}<strong>{{ c.nazev }}</strong> <span class="tlumene mala">klub</span>{% endif %}</span>
+        <form method="post" action="/sledovani/odebrat">
+          <input type="hidden" name="typ" value="{{ c.typ }}"><input type="hidden" name="id" value="{{ c.id }}">
+          <input type="hidden" name="skupina" value="{{ c.skupina }}"><input type="hidden" name="zpet" value="/sledovani?skupina={{ skupina | urlencode }}">
+          <button type="submit" class="odebrat" aria-label="Odebrat {{ c.nazev }} ze skupiny {{ nazev }}">Odebrat</button>
+        </form>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endfor %}
+</div>
+{% else %}
+<p class="tlumene">Zatím nesleduješ nikoho. Přidej poslance nebo klub výše.</p>
+{% endif %}
+
+{% if polozky %}
+<h2>Jak hlasovali</h2>
+<nav class="zalozky" aria-label="Skupiny">
+  <a href="/sledovani" {% if not skupina %}aria-current="page"{% endif %}>Všichni</a>
+  {% for s in skupiny if polozky | selectattr("skupina", "equalto", s) | list %}
+    <a href="/sledovani?skupina={{ s | urlencode }}" {% if s == skupina %}aria-current="page"{% endif %}>{{ s }}</a>
+  {% endfor %}
+</nav>
+{% include "_proud.html" %}
+{{ strankovani(request, strana, dalsi) }}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,11 @@
+{# Tlačítko sledovat / přestat sledovat; HTMX ho po kliknutí nahradí novou verzí. #}
+<form class="tlacitko-sledovat" method="post"
+      action="{{ '/sledovani/odebrat' if sledovany else '/sledovani/pridat' }}"
+      hx-post="{{ '/sledovani/odebrat' if sledovany else '/sledovani/pridat' }}" hx-swap="outerHTML">
+  <input type="hidden" name="typ" value="{{ typ }}">
+  <input type="hidden" name="id" value="{{ id }}">
+  <input type="hidden" name="zpet" value="{{ zpet }}">
+  <button type="submit" class="{{ 'aktivni' if sledovany }}" aria-pressed="{{ 'true' if sledovany else 'false' }}">
+    {{ "Sledováno" if sledovany else "Sledovat" }}
+  </button>
+</form>

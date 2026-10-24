@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% from "_makra.html" import tabulka_hlasovani %}
+{% block title %}Statistiky – Sledování poslanců{% endblock %}
+
+
+{% block content %}
+<h1>Statistiky</h1>
+<p class="tlumene">Aktuální volební období, poslanci s trvajícím mandátem. Kliknutím na jméno otevřeš profil s podrobnostmi.</p>
+
+<h2>Poslanci</h2>
+<div class="mrizka-zebricku">
+  <section class="panel zebricek">
+    <h3>Nejnižší účast</h3>
+    <p class="tlumene mala">Podíl hlasování po složení slibu, u kterých byl přítomen.</p>
+    <ol>{% for p in nejnizsi_ucast %}<li><a href="/poslanec/{{ p.id_poslanec }}">{{ p.jmeno }}</a> <span class="tlumene mala">{{ p.klub or "nezařazený" }}</span> <b class="cisla">{{ p.ucast | round | int }} %</b></li>{% endfor %}</ol>
+  </section>
+  <section class="panel zebricek">
+    <h3>Nejvíc neomluvených absencí</h3>
+    <p class="tlumene mala">Hlasování, kdy nebyl přihlášen a neměl omluvu.</p>
+    <ol>{% for p in neomluveni %}<li><a href="/poslanec/{{ p.id_poslanec }}">{{ p.jmeno }}</a> <span class="tlumene mala">{{ p.klub or "nezařazený" }}</span> <b class="cisla">{{ p.neomluven }}</b></li>{% endfor %}</ol>
+  </section>
+  <section class="panel zebricek">
+    <h3>Nejčastěji proti svému klubu</h3>
+    <p class="tlumene mala">Hlasoval Ano/Ne opačně než většina vlastního klubu.</p>
+    <ol>{% for p in rebelove %}<li><a href="/poslanec/{{ p.id_poslanec }}?zalozka=proti-klubu">{{ p.jmeno }}</a> <span class="tlumene mala">{{ p.klub or "nezařazený" }}</span> <b class="cisla">{{ p.proti_klubu }}×</b></li>{% endfor %}</ol>
+  </section>
+  <section class="panel zebricek">
+    <h3>Nejvíc vystoupení</h3>
+    <p class="tlumene mala">Projevy v roli řečníka (bez řízení schůze).</p>
+    <ol>{% for p in nejvic_vystoupeni %}<li><a href="/poslanec/{{ p.id_poslanec }}?zalozka=vystoupeni">{{ p.jmeno }}</a> <span class="tlumene mala">{{ p.klub or "nezařazený" }}</span> <b class="cisla">{{ p.vystoupeni }}</b></li>{% endfor %}</ol>
+  </section>
+</div>
+
+<section class="panel odsazeni">
+  <h3>Zatím nepromluvili <span class="tlumene mala">({{ nepromluvili | length }})</span></h3>
+  {% if nepromluvili %}
+  <p class="seznam-carkami">{% for p in nepromluvili %}<a href="/poslanec/{{ p.id_poslanec }}">{{ p.jmeno }}</a> <span class="tlumene mala">{{ p.klub or "" }}</span>{% if not loop.last %}, {% endif %}{% endfor %}</p>
+  {% else %}<p class="tlumene">Všichni poslanci už aspoň jednou vystoupili.</p>{% endif %}
+</section>
+
+<h2>Kluby</h2>
+<div class="mrizka-klubu">
+  <section class="panel">
+    <h3>Jednota klubů</h3>
+    <p class="tlumene mala">Podíl hlasů Ano/Ne členů, které šly s většinou klubu.</p>
+    <ul class="seznam-cisty sloupcovy-graf">
+      {% for k in jednota %}
+      <li><span class="nowrap">{{ k.zkratka }}</span>
+          <span class="sloupec"><span style="width: {{ k.jednota | round(1) }}%"></span></span>
+          <b class="cisla">{{ k.jednota | round(1) }} %</b></li>
+      {% endfor %}
+    </ul>
+  </section>
+  <section class="panel">
+    <h3>Shoda mezi kluby</h3>
+    <p class="tlumene mala">V kolika % hlasování hlasovaly většiny obou klubů stejně.</p>
+    <div class="matice-obal">
+    <table class="matice">
+      <thead><tr><th></th>{% for k in kluby %}<th scope="col">{{ k }}</th>{% endfor %}</tr></thead>
+      <tbody>
+      {% for k1 in kluby %}
+        <tr><th scope="row">{{ k1 }}</th>
+        {% for k2 in kluby %}
+          {% set s = shoda.get((k1, k2)) %}
+          <td {% if s is not none %}style="--shoda: {{ s | round | int }}"{% endif %} title="{{ k1 }} a {{ k2 }}: {{ s | round | int if s is not none else '–' }} %">{{ s | round | int if s is not none and k1 != k2 else "" }}</td>
+        {% endfor %}
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </section>
+</div>
+
+<h2>Nejtěsnější hlasování</h2>
+<p class="tlumene">Hlasování, ve kterých o výsledku rozhodlo nejméně hlasů.</p>
+{{ tabulka_hlasovani(tesna) }}
+{% endblock %}

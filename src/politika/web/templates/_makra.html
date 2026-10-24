@@ -1,0 +1,43 @@
+{# Sdílená makra šablon. #}
+
+{# Krátký popis předmětu hlasování ze stenozáznamu: „Pozměňovací návrh B2 – Budeme hlasovat o …“. #}
+{% macro predmet_kratce(h, delka=160) -%}
+  {%- if h.predmet_druh -%}
+    <span class="predmet-druh predmet-{{ h.predmet_druh }}">{{ DRUH_TEXT[h.predmet_druh] }}{% if h.predmet_oznaceni %} {{ h.predmet_oznaceni }}{% endif %}</span>
+    {%- if h.predmet_otazka %} <span class="tlumene">{{ h.predmet_otazka | truncate(delka, killwords=True) }}</span>{% endif -%}
+  {%- endif -%}
+{%- endmacro %}
+
+{# Tabulka hlasování. s_hlasem = sloupec s hlasem poslance (profil), s_bodem = název bodu. #}
+{% macro tabulka_hlasovani(hlasovani, s_hlasem=False, s_bodem=True, prazdne="Žádná hlasování.") -%}
+<table class="tabulka">
+  <thead><tr><th>Datum</th><th>Hlasování</th><th>O čem</th>{% if s_hlasem %}<th>Hlasoval</th>{% endif %}<th>Výsledek</th></tr></thead>
+  <tbody>
+  {% for h in hlasovani %}
+    <tr>
+      <td class="nowrap cisla tlumene">{{ h.datum | datum }} {{ h.cas }}</td>
+      <td class="nowrap"><a href="/hlasovani/{{ h.id_hlasovani }}">{{ h.schuze }}/{{ h.cislo }}</a></td>
+      <td class="popis">
+        {%- if s_bodem %}{{ h.popis or "–" }}{% if h.tisk_ct %} <a class="mala" href="/zakony/{{ h.tisk_ct }}">tisk {{ h.tisk_ct }}</a>{% endif %}{% endif %}
+        {%- if h.predmet_druh %}<div class="mala predmet-radek">{{ predmet_kratce(h) }}</div>
+        {%- elif not s_bodem %}<span class="tlumene">Předmět zatím nezjištěn</span>{% endif -%}
+      </td>
+      {% if s_hlasem %}<td><span class="hlas hlas-{{ h.hlas }}">{{ HLAS_TEXT.get(h.hlas, h.hlas) }}</span></td>{% endif %}
+      <td class="nowrap"><span class="vysledek-{{ h.vysledek }}">{{ VYSLEDEK_TEXT.get(h.vysledek, h.vysledek) }}</span>
+        <span class="tlumene mala cisla">{{ h.pro }}:{{ h.proti }}</span></td>
+    </tr>
+  {% else %}
+    <tr><td colspan="5" class="tlumene">{{ prazdne }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{%- endmacro %}
+
+{# Stránkování: odkazy zachovají ostatní parametry dotazu. #}
+{% macro strankovani(request, strana, dalsi) -%}
+<nav class="strankovani" aria-label="Stránkování">
+  <span>{% if strana > 1 %}<a href="{{ request.url.include_query_params(strana=strana - 1) }}">Novější</a>{% endif %}</span>
+  <span class="tlumene mala">Strana {{ strana }}</span>
+  <span>{% if dalsi %}<a href="{{ request.url.include_query_params(strana=strana + 1) }}">Starší</a>{% endif %}</span>
+</nav>
+{%- endmacro %}

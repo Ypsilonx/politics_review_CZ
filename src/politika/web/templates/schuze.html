@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% from "_makra.html" import tabulka_hlasovani %}
+{% block title %}{{ s.cislo }}. schůze – Sledování poslanců{% endblock %}
+{% block content %}
+<h1>{{ s.cislo }}. schůze</h1>
+<div class="profil-meta">
+  <span class="cisla">{{ s.od | datum }}{% if s.do and s.do != s.od %} – {{ s.do | datum }}{% elif not s.do %}, probíhá{% endif %}</span>
+  <a href="{{ psp_url }}" target="_blank" rel="noopener">Schůze na psp.cz</a>
+</div>
+
+<h2>Pořad a hlasování</h2>
+<div class="body-schuze">
+{% for polozka in body %}
+  {% set b = polozka.bod %}
+  <details class="klub-blok bod-blok" {% if polozka.hlasovani and loop.length < 8 %}open{% endif %}>
+    <summary>
+      <span class="cisla tlumene">{{ b.cislo if b else "–" }}</span>
+      <span>{% if b %}{{ b.zkratka or b.nazev | truncate(140) }}{% if b.ct %} <a class="mala" href="/zakony/{{ b.ct }}">tisk {{ b.ct }}</a>{% endif %}{% else %}Procedurální hlasování mimo body{% endif %}</span>
+      <span class="tlumene mala nowrap">{{ polozka.hlasovani | length }} hlasování</span>
+    </summary>
+    <div class="bod-obsah">
+      {% if b and b.zkratka and b.nazev %}<p class="tlumene mala">{{ b.nazev }}</p>{% endif %}
+      {% if polozka.hlasovani %}{{ tabulka_hlasovani(polozka.hlasovani, s_bodem=False) }}{% else %}<p class="tlumene mala">K bodu se nehlasovalo.</p>{% endif %}
+    </div>
+  </details>
+{% else %}
+  <p class="tlumene">Pořad schůze zatím není zveřejněn.</p>
+{% endfor %}
+</div>
+{% endblock %}

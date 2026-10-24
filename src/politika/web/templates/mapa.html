@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Mapa kanceláří – Sledování poslanců{% endblock %}
+{% block content %}
+<h1>Regionální kanceláře</h1>
+<p class="tlumene">{{ kancelare | length }} kanceláří poslanců. Body blízko sebe se spojí do kroužku s počtem, přiblížením se rozdělí.</p>
+
+<form class="filtry" id="filtr-mapy">
+  <label>Klub
+    <select name="klub">
+      <option value="">všechny</option>
+      {% for k in kluby %}<option>{{ k }}</option>{% endfor %}
+    </select>
+  </label>
+</form>
+
+<div id="mapa" class="mapa" role="region" aria-label="Mapa kanceláří"></div>
+
+{# Data pro mapa.js – tojson escapuje znaky, které by mohly ukončit skript. #}
+<script id="data-kancelari" type="application/json">{{ {"kancelare": kancelare, "osoba": osoba} | tojson }}</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="/static/js/mapa.js"></script>
+{% endblock %}

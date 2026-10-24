@@ -1,0 +1,20 @@
+<p class="tlumene mala">{{ tisky | length }} tisků</p>
+<ul class="seznam-tisku">
+  {% for t in tisky %}
+  <li>
+    <a class="karta-tisku" href="/zakony/{{ t.ct }}">
+      <span class="tisk-cislo cisla">{{ t.ct }}</span>
+      <span class="tisk-text">
+        <span class="tisk-nazev">{{ t.nazev }}</span>
+        <span class="tlumene mala">{{ t.druh or "" }}{% if t.navrhovatel %}, předkládá {{ t.navrhovatel }}{% endif %}</span>
+      </span>
+      <span class="tisk-stav">
+        {% if t.stav %}<span class="stitek">{{ t.stav }}</span>{% endif %}
+        <span class="tlumene mala">{{ t.posledni_udalost | datum }}{% if t.pocet_hlasovani %}, {{ t.pocet_hlasovani }} hlasování{% endif %}</span>
+      </span>
+    </a>
+  </li>
+  {% else %}
+  <li class="tlumene">Žádný tisk tomu neodpovídá. Zkus číslo tisku nebo jiné slovo z názvu.</li>
+  {% endfor %}
+</ul>

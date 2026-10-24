@@ -3,7 +3,8 @@
   {% for p in poslanci %}
   <li>
     <a class="karta-poslance" href="/poslanec/{{ p.id_poslanec }}">
-      <span class="avatar" aria-hidden="true">{{ p.jmeno[0] }}{{ p.prijmeni[0] }}</span>
+      {% if p.foto %}<img class="foto foto-mala" src="/foto/{{ p.id_osoba }}" alt="" width="42" height="56" loading="lazy">
+      {% else %}<span class="avatar" aria-hidden="true">{{ p.jmeno[0] }}{{ p.prijmeni[0] }}</span>{% endif %}
       <span><span class="jmeno">{{ p.jmeno }}</span>
             <span class="tlumene mala">{{ p.klub or "nezařazený" }}</span></span>
     </a>

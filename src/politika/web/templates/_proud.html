@@ -1,0 +1,31 @@
+{# Proud hlasování sledovaných. Očekává: proud, (volitelně) prazdne_text. #}
+{% from "_makra.html" import predmet_kratce %}
+<ol class="proud">
+{% for polozka in proud %}
+  {% set h = polozka.h %}
+  <li class="proud-polozka">
+    <div class="proud-hlavicka">
+      <span class="tlumene mala cisla">{{ h.datum | datum }} {{ h.cas }}</span>
+      <a class="mala" href="/hlasovani/{{ h.id_hlasovani }}">hlasování {{ h.schuze }}/{{ h.cislo }}</a>
+      <span class="vysledek-{{ h.vysledek }} mala">{{ VYSLEDEK_TEXT.get(h.vysledek, h.vysledek) }} {{ h.pro }}:{{ h.proti }}</span>
+    </div>
+    <a class="proud-nazev" href="/hlasovani/{{ h.id_hlasovani }}">{{ h.popis or "Hlasování" }}</a>
+    {% if h.predmet_druh %}<div class="mala predmet-radek">{{ predmet_kratce(h, 220) }}</div>{% endif %}
+    <ul class="proud-hlasy">
+      {% for p in polozka.poslanci %}
+        <li class="{{ 'zvyrazneno' if p.proti_klubu or p.chybel_u_celku }}">
+          <a href="/poslanec/{{ p.id_poslanec }}">{{ p.jmeno }}</a>
+          <span class="hlas hlas-{{ p.hlas }}">{{ HLAS_TEXT.get(p.hlas, p.hlas) }}</span>
+          {% if p.proti_klubu %}<span class="upozorneni">proti klubu {{ p.klub }}</span>{% endif %}
+          {% if p.chybel_u_celku %}<span class="upozorneni">chyběl u hlasování o celém návrhu</span>{% endif %}
+        </li>
+      {% endfor %}
+      {% for k in polozka.kluby %}
+        <li><strong>{{ k.zkratka }}</strong>
+          {% if k.vetsina %}<span class="hlas hlas-{{ k.vetsina }}">většina {{ HLAS_TEXT[k.vetsina] }}</span>{% else %}<span class="tlumene">nerozhodně</span>{% endif %}
+          <span class="tlumene mala cisla">{{ k.ano }}:{{ k.ne }}</span></li>
+      {% endfor %}
+    </ul>
+  </li>
+{% endfor %}
+</ol>

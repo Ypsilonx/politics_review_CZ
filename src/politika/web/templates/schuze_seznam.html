@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Schůze – Sledování poslanců{% endblock %}
+{% block content %}
+<h1>Schůze</h1>
+<p class="tlumene">Schůze Poslanecké sněmovny v aktuálním volebním období.</p>
+<table class="tabulka">
+  <thead><tr><th>Schůze</th><th>Termín</th><th>Bodů</th><th>Hlasování</th></tr></thead>
+  <tbody>
+  {% for s in schuze %}
+    <tr>
+      <td><a href="/schuze/{{ s.cislo }}">{{ s.cislo }}. schůze</a></td>
+      <td class="tlumene cisla">{{ s.od | datum }}{% if s.do and s.do != s.od %} – {{ s.do | datum }}{% elif not s.do %} – probíhá{% endif %}</td>
+      <td class="cisla">{{ s.bodu }}</td>
+      <td class="cisla">{% if s.hlasovani %}<a href="/hlasovani?schuze={{ s.cislo }}">{{ s.hlasovani }}</a>{% else %}<span class="tlumene">0</span>{% endif %}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

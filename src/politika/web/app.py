@@ -20,6 +20,13 @@ HLAS_TEXT = {
     "F": "Nehlasoval", "@": "Nepřihlášen", "M": "Omluven", "W": "Před slibem",
 }
 VYSLEDEK_TEXT = {"A": "Přijato", "R": "Zamítnuto"}
+# Druh předmětu hlasování zjištěný ze stenozáznamu (parovani.steno.Predmet.druh).
+DRUH_TEXT = {
+    "pozmenovaci": "Pozměňovací návrh",
+    "celek": "Návrh jako celek",
+    "proceduralni": "Procedurální hlasování",
+    "jine": "Hlasování",
+}
 
 # Horní menu: (cesta, název). Úprava pořadí nebo názvů sekcí zde.
 MENU = [
@@ -42,7 +49,8 @@ def datum_cz(iso: str | None) -> str:
 
 
 templates = Jinja2Templates(directory=WEB_DIR / "templates")
-templates.env.globals.update(HLAS_TEXT=HLAS_TEXT, VYSLEDEK_TEXT=VYSLEDEK_TEXT, MENU=MENU)
+templates.env.globals.update(HLAS_TEXT=HLAS_TEXT, VYSLEDEK_TEXT=VYSLEDEK_TEXT,
+                             DRUH_TEXT=DRUH_TEXT, MENU=MENU, PSP_URL="https://www.psp.cz")
 templates.env.filters["datum"] = datum_cz
 
 
@@ -57,17 +65,24 @@ def get_db() -> Iterator[sqlite3.Connection]:
 
 def create_app() -> FastAPI:
     """Sestaví aplikaci s routami a statickými soubory."""
-    from politika.web.routes import hlasovani, poslanci, pripravujeme
+    from politika.web.routes import (
+        dokumenty, hlasovani, mapa, poslanci, schuze, sledovani, statistiky, tisky,
+    )
 
     app = FastAPI(title="Sledování poslanců")
     app.mount("/static", StaticFiles(directory=WEB_DIR / "static"), name="static")
     app.include_router(poslanci.router)
     app.include_router(hlasovani.router)
-    app.include_router(pripravujeme.router)
+    app.include_router(tisky.router)
+    app.include_router(schuze.router)
+    app.include_router(dokumenty.router)
+    app.include_router(statistiky.router)
+    app.include_router(mapa.router)
+    app.include_router(sledovani.router)
 
     @app.get("/", include_in_schema=False)
     def index() -> RedirectResponse:
-        """Úvodní stránka – do T9 (Přehled) přesměruje na seznam poslanců."""
-        return RedirectResponse("/poslanci")
+        """Úvodní stránka = Přehled."""
+        return RedirectResponse("/prehled")
 
     return app
