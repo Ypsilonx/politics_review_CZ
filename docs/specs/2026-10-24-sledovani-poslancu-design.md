@@ -37,8 +37,9 @@ statistiky, zákony, schůze a mapa kanceláří.
   texty stenozáznamů (soubory úseků `sNNNxxx.htm`), odkazy na soubory tisků a návrhů
   (`historie.sqw`, `tiskt.sqw`), mapa kanceláří (`pk.sqw`, souřadnice jsou přímo ve stránce),
   fotky poslanců (`/eknih/cdrom/2025ps/eknih/2025ps/poslanci/…/{id_osoba}.jpg`).
-- **Dokumenty** v `data/` (`opendata/`, `steno/`, `dokumenty/`, `foto/`). PDF se zobrazí v prohlížeči,
-  DOCX se převede na HTML (`mammoth`, rozhodnutí 2A), originál je ke stažení.
+- **Dokumenty** v `data/` (`opendata/`, `steno/`, `dokumenty/`, `foto/`). Soubory tisků a návrhů
+  (PDF, DOCX) se nestahují. Aplikace na ně odkazuje na psp.cz, uživatel si otevře jen to, co
+  chce číst (méně požadavků na psp.cz). Stahování z psp.cz běží jen v nočním okně 22–6 h.
 - **Stack:** Python 3.14 + FastAPI, Jinja2 + HTMX, SQLite. Mapa: Leaflet + OpenStreetMap.
   Grafy jen přes CSS/SVG, bez knihovny, dokud to stačí.
 - **Přihlášení:** v1 žádné (domácí síť).

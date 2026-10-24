@@ -12,12 +12,15 @@ def ted() -> str:
     return datetime.now(UTC).isoformat(timespec="seconds")
 
 
-def zaeviduj(conn: sqlite3.Connection, url: str, typ: str, cesta: Path, **udaje: object) -> None:
+def zaeviduj(conn: sqlite3.Connection, url: str, typ: str, cesta: Path | None,
+             **udaje: object) -> None:
     """Zapíše nebo aktualizuje záznam dokumentu (cesta se ukládá relativně k ``DATA_DIR``).
+
+    :param cesta: stažený soubor; ``None`` = jen odkaz na psp.cz, soubor se nestahuje
 
     :param udaje: další sloupce tabulky ``dokument`` (schuze, poradi, ct, ct1, cislo_sd …)
     """
-    hodnoty = {"url": url, "typ": typ, "cesta": cesta.relative_to(config.DATA_DIR).as_posix(),
+    hodnoty = {"url": url, "typ": typ, "cesta": cesta.relative_to(config.DATA_DIR).as_posix() if cesta else None,
                "stazeno": ted(), **udaje}
     sloupce = ", ".join(hodnoty)
     zmena = ", ".join(f"{k} = excluded.{k}" for k in hodnoty if k != "url")

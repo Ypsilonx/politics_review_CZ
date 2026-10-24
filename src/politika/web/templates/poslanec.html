@@ -121,7 +121,7 @@
         {% for n in pozmenovaci %}
         <li><span class="tlumene cisla">SD {{ n.cislo }}</span> k <a href="/zakony/{{ n.ct }}">tisku {{ n.ct }}</a> {{ n.tisk_nazev or "" }}
           {% if n.popis %}<span class="tlumene mala">{{ n.popis }}</span>{% endif %}
-          {% if n.id_souboru %}<a class="mala" href="/dokumenty/{{ n.id_souboru }}">Zobrazit</a>{% endif %}
+          {% if n.url_souboru %}<a class="mala" href="{{ PSP_URL }}{{ n.url_souboru }}" target="_blank" rel="noopener">Stáhnout (DOCX)</a>{% endif %}
           <span class="tlumene mala">{{ n.datum | datum }}</span></li>
         {% endfor %}
       </ul>

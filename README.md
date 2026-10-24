@@ -31,14 +31,16 @@ uv sync
 
 ```bash
 uv run politika import            # otevřená data PSP → databáze (asi minuta)
-uv run politika stahni-dokumenty  # stenozáznamy, soubory tisků, kanceláře, fotky
+uv run politika stahni-dokumenty  # stenozáznamy, odkazy na tisky, kanceláře, fotky (v noci)
 uv run politika paruj             # předmět hlasování ze stenozáznamů
 uv run politika web               # http://127.0.0.1:8000
 ```
 
 `stahni-dokumenty` poprvé trvá **několik hodin**. Server psp.cz omezuje počet spojení, proto
-aplikace stahuje šetrně, po jednom souboru s pauzou. Aplikaci můžeš používat hned, data
-se průběžně doplňují. Když se stahování přeruší, příští běh pokračuje tam, kde skončil.
+aplikace stahuje šetrně, po jednom souboru s pauzou, a jen v noci (22–6 h). V 6 h se stahování
+samo ukončí a další běh pokračuje tam, kde skončil. Mimo noční okno se stahuje jen s `--ihned`.
+Soubory tisků a pozměňovacích návrhů (PDF, DOCX) se nestahují. Aplikace na ně odkazuje
+na psp.cz. Aplikaci můžeš používat hned, data se průběžně doplňují.
 
 ## Denní obnova
 
@@ -49,8 +51,8 @@ uv run politika obnova
 ```
 
 - **Windows (Plánovač úloh):**
-  `schtasks /Create /SC DAILY /ST 06:30 /TN "Sledovani poslancu" /TR "cmd /c cd /d E:\cesta\k\politics_review_CZ && uv run politika obnova >> data\obnova.log 2>&1"`
-- **Linux (cron):** `30 6 * * * cd /cesta/k/politics_review_CZ && uv run politika obnova >> data/obnova.log 2>&1`
+  `schtasks /Create /SC DAILY /ST 22:30 /TN "Sledovani poslancu" /TR "cmd /c cd /d E:\cesta\k\politics_review_CZ && uv run politika obnova >> data\obnova.log 2>&1"`
+- **Linux (cron):** `30 22 * * * cd /cesta/k/politics_review_CZ && uv run politika obnova >> data/obnova.log 2>&1`
 
 Při chybě některého kroku skončí příkaz s kódem 1, ostatní kroky přesto doběhnou.
 
@@ -59,7 +61,8 @@ Při chybě některého kroku skončí příkaz s kódem 1, ostatní kroky přes
 | Co | Kde |
 |---|---|
 | Složka s daty, soubor databáze | proměnné prostředí `POLITIKA_DATA`, `POLITIKA_DB` |
-| Volební období, pauza mezi požadavky na psp.cz | `src/politika/config.py` |
+| Volební období, pauza mezi požadavky, noční okno (`NOCNI_OKNO`) | `src/politika/config.py` |
+| Kontakt v User-Agentu pro správce psp.cz (e-mail) | proměnná prostředí `POLITIKA_KONTAKT` |
 | Přístup z domácí sítě | `uv run politika web --host 0.0.0.0 --port 8000` |
 | Barvy, písmo (oba režimy) | `src/politika/web/static/css/base.css` (proměnné v `:root`) |
 | Sekce v menu | `MENU` v `src/politika/web/app.py` |

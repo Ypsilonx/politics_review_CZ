@@ -117,11 +117,11 @@ def navrhy_zakonu(conn: sqlite3.Connection, id_osoba: int) -> list[sqlite3.Row]:
 
 
 def pozmenovaci_navrhy(conn: sqlite3.Connection, id_osoba: int) -> list[sqlite3.Row]:
-    """Vrátí písemné pozměňovací návrhy osoby v aktuálním období (s tiskem a souborem, je-li)."""
+    """Vrátí písemné pozměňovací návrhy osoby v aktuálním období (s tiskem a odkazem na soubor, je-li znám)."""
     obdobi = aktualni_obdobi(conn)
     return conn.execute(
         """
-        SELECT sd.cislo, sd.ct, sd.datum, t.nazev AS tisk_nazev, d.rowid AS id_souboru, d.popis
+        SELECT sd.cislo, sd.ct, sd.datum, t.nazev AS tisk_nazev, d.url AS url_souboru, d.popis
         FROM sd
         LEFT JOIN tisk t ON t.ct = sd.ct AND t.id_obdobi = sd.id_organ
         LEFT JOIN dokument d ON d.typ = 'sd_docx' AND d.cislo_sd = sd.cislo AND d.ct = sd.ct

@@ -102,7 +102,7 @@ def sbirka_tisku(conn: sqlite3.Connection, id_tisk: int) -> sqlite3.Row | None:
 
 
 def dokumenty_tisku(conn: sqlite3.Connection, ct: int) -> list[dict]:
-    """Vrátí stažená PDF verzí tisku s popisem, seřazená podle verze.
+    """Vrátí odkazy na PDF verzí tisku s popisem, seřazené podle verze.
 
     Popis: 213/0 = původní návrh, verze se souhrnem pozměňovacích návrhů podle historie tisku,
     ostatní „Tisk 213/n“; soubory s písmenem za číslem tisku (t0213a0.pdf) jsou přílohy.
@@ -113,7 +113,7 @@ def dokumenty_tisku(conn: sqlite3.Connection, ct: int) -> list[dict]:
                   if historie else None)
     vysledek = []
     for r in conn.execute(
-        "SELECT rowid AS id, ct1, nazev FROM dokument WHERE typ = 'tisk_pdf' AND ct = ? "
+        "SELECT url, ct1, nazev FROM dokument WHERE typ = 'tisk_pdf' AND ct = ? "
         "ORDER BY ct1, nazev",
         (ct,),
     ):
@@ -124,13 +124,13 @@ def dokumenty_tisku(conn: sqlite3.Connection, ct: int) -> list[dict]:
             popis = "Souhrn pozměňovacích návrhů"
         else:
             popis = f"Tisk {ct}/{r['ct1']}"
-        vysledek.append({"id": r["id"], "ct1": r["ct1"], "nazev": r["nazev"],
+        vysledek.append({"url": r["url"], "ct1": r["ct1"], "nazev": r["nazev"],
                          "popis": f"{popis} – příloha" if priloha else popis})
     return vysledek
 
 
 def pozmenovaci_navrhy(conn: sqlite3.Connection, ct: int) -> list[sqlite3.Row]:
-    """Vrátí písemné pozměňovací návrhy k tisku (z otevřených dat) a stažený soubor, je-li.
+    """Vrátí písemné pozměňovací návrhy k tisku (z otevřených dat) a odkaz na soubor, je-li znám.
 
     Autor se páruje na poslance aktuálního období kvůli odkazu na profil.
     """
@@ -140,7 +140,7 @@ def pozmenovaci_navrhy(conn: sqlite3.Connection, ct: int) -> list[sqlite3.Row]:
         SELECT sd.cislo, sd.datum, sd.id_osoba, o.jmeno, o.prijmeni,
                (SELECT p.id_poslanec FROM poslanec p
                  WHERE p.id_osoba = sd.id_osoba AND p.id_obdobi = :obdobi) AS id_poslanec,
-               d.rowid AS id_souboru, d.popis
+               d.url AS url_souboru, d.popis
         FROM sd
         LEFT JOIN osoba o ON o.id_osoba = sd.id_osoba
         LEFT JOIN dokument d ON d.typ = 'sd_docx' AND d.cislo_sd = sd.cislo AND d.ct = sd.ct

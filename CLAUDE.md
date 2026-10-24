@@ -18,8 +18,8 @@ Doména: python-uv (web-api) + web-frontend. Obecná pravidla domén jsou ve ski
 ## Mapa projektu
 
 - `importer/` – UNL z otevřených dat PSP → SQLite (`opendata.py`: tabulka = popis `Tabulka`)
-- `dokumenty/` – vše z psp.cz mimo otevřená data: úseky stenozáznamů, soubory tisků (PDF, DOCX
-  → HTML), mapa kanceláří, fotky; `stahovani.Stahovac` = jediné místo pro HTTP na psp.cz
+- `dokumenty/` – vše z psp.cz mimo otevřená data: úseky stenozáznamů, odkazy na soubory tisků
+  (PDF, DOCX se nestahují), mapa kanceláří, fotky; `stahovani.Stahovac` = jediné místo pro HTTP na psp.cz
 - `parovani/` – hlasování → úryvek stenozáznamu → druh předmětu, označení návrhu, dokument
 - `analyza/` – předpočet (`hlas_klub`, `klub_hlasovani`) a statistiky (docházka, proti klubu…)
 - `db/schema.sql`, `db/connection.py` (verze schématu), `db/dotazy/` – čtecí dotazy po sekcích
@@ -38,7 +38,8 @@ Doména: python-uv (web-api) + web-frontend. Obecná pravidla domén jsou ve ski
   `SCHEMA_VERZE`. Tabulky aplikace (`dokument`, `predmet_hlasovani`, `kancelar`, `sledovany`) import nemaže.
 - Předmět hlasování je fakt ze stenozáznamu (úryvek + odkaz); co se nezjistí, zůstane „nezjištěno“.
   Žádné domýšlení. AI shrnutí je odložené.
-- HTML převedené z DOCX se čistí allowlistem (`dokumenty/prevod.vycisti_html`) – jen pak `| safe`.
+- Stahování z psp.cz jen v nočním okně (`config.NOCNI_OKNO`, 22–6 h); mimo něj `--ihned`.
+  User-Agent nese kontakt jen z proměnné prostředí `POLITIKA_KONTAKT` – osobní údaje ne do repa.
 - Odchylka od L1 (web-frontend): výchozí ověření UI 1440 px a 390 px platí; přepínač režimu
   je na mobilu v menu.
 

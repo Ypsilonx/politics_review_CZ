@@ -233,13 +233,14 @@ CREATE TABLE IF NOT EXISTS hlas (
 ) WITHOUT ROWID;
 CREATE INDEX IF NOT EXISTS ix_hlas_poslanec ON hlas (id_poslanec, id_hlasovani);
 
--- Dokumenty stažené z psp.cz mimo otevřená data (stenozáznamy, soubory tisků a návrhů).
+-- Dokumenty z psp.cz mimo otevřená data: stažené stránky (stenozáznamy, historie a verze tisků)
+-- a odkazy na soubory tisků a návrhů (PDF, DOCX se nestahují, cesta je NULL).
 -- Tabulku plní stahování dokumentů, import otevřených dat ji nepřepisuje.
 -- typ: steno_den, steno_usek, tisk_historie, tisk_verze, tisk_pdf, sd_docx
 CREATE TABLE IF NOT EXISTS dokument (
     url          TEXT PRIMARY KEY,   -- relativní k https://www.psp.cz nebo absolutní
     typ          TEXT NOT NULL,
-    cesta        TEXT NOT NULL,      -- relativní k DATA_DIR
+    cesta        TEXT,               -- relativní k DATA_DIR; NULL = jen odkaz, nestaženo
     schuze       INTEGER,
     poradi       INTEGER,            -- pořadí úseku stenozáznamu v rámci schůze
     ct           INTEGER,            -- číslo tisku

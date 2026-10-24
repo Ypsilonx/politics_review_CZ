@@ -9,14 +9,15 @@ Návrh: `docs/specs/2026-10-24-sledovani-poslancu-design.md`.
 - Plán v2 (T0–T10) dokončen: import otevřených dat, stahování dokumentů, párování předmětu
   hlasování (schůze 34: 261/282), všechny sekce webu, CSV export, globální hledání,
   příkaz `obnova`, README, projektový CLAUDE.md.
+- Revize kódu (9 nálezů) opravena. Stahování z psp.cz jen v noci 22–6 h (`--ihned` mimo okno),
+  kontakt v User-Agentu z `POLITIKA_KONTAKT`, soubory tisků a návrhů jen jako odkazy na psp.cz.
 
 ## Rozpracováno
-- První kompletní stažení dokumentů celého období běží (`stahni-dokumenty`, hodiny), pak
-  `uv run politika paruj` pro všechny schůze.
+- První kompletní stažení stenozáznamů (hotovo schůze 35–25, zbytek po nocích přes `obnova`).
 
 ## Další krok
-- Nezávislá revize kódu celého projektu (dle plánu po T10).
-- Naplánovat denní `obnova` (Plánovač úloh).
+- Naplánovat denní `obnova` ve 22:05 (Plánovač úloh, příkaz v README) – vytvoří uživatel.
+- Ověřit `obnova` 2× po sobě (druhý běh nemá nic stahovat).
 - Později: AI shrnutí návrhů, dění kolem politika na webu, veřejné nasazení (licence, přihlášení).
 
 ## Otevřené otázky / slepé uličky
@@ -25,6 +26,7 @@ Návrh: `docs/specs/2026-10-24-sledovani-poslancu-design.md`.
 - Stahovat všechny úseky stenozáznamů (~4300) je pomalé: psp.cz posílá `Connection: close`
   a omezuje nová spojení (výpadky TCP/TLS) → jen úseky kolem hlasování (~27 %).
 - Odkazy na soubory tisků nejsou v otevřených datech → `historie.sqw` a `tiskt.sqw` (rozhodnutí 1A).
-- Pozměňovací návrhy jsou jen DOCX → převod na HTML přes mammoth (2A).
+- Pozměňovací návrhy jsou jen DOCX; převod na HTML (mammoth) zrušen – uživatel čte jen část,
+  stahování všeho zbytečně zatěžovalo psp.cz → odkaz na originál.
 - Ústní interpelace (`interp.zip`) zatím nemají data pro období 2025 → v profilu nejsou.
 - Před zveřejněním na GitHubu: licence (návrh MIT), kontrola osobních údajů (autor v pyproject.toml).

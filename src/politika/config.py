@@ -18,7 +18,12 @@ OPENDATA_URL = "https://www.psp.cz/eknih/cdrom/opendata/"
 OBDOBI = "2025ps"
 OPENDATA_SADY = ["poslanci", f"hl-{OBDOBI}", "schuze", "tisky", "steno", "sd", "sbirka"]
 
-# Identifikace klienta vůči psp.cz (bez osobních údajů).
-USER_AGENT = "politika-osobni-prehled/0.1"
+# Identifikace klienta vůči psp.cz. Kontakt (e-mail) se bere jen z proměnné prostředí
+# POLITIKA_KONTAKT, aby se osobní údaj nedostal do repozitáře; správce serveru pak ví, komu napsat.
+KONTAKT = os.environ.get("POLITIKA_KONTAKT", "").strip()
+USER_AGENT = "politika-osobni-prehled/0.1" + (f" (+mailto:{KONTAKT})" if KONTAKT else "")
 # Pauza mezi požadavky na psp.cz v sekundách – šetrnost k serveru.
 PAUZA_MEZI_POZADAVKY = 1.0
+# Dokumenty z psp.cz se stahují jen v noci (hodina od, hodina do; přes půlnoc), mimo okno
+# jen s --ihned. Šetří server ve špičce; nedokončené stažení pokračuje další noc.
+NOCNI_OKNO = (22, 6)

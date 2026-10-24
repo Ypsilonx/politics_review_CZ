@@ -29,11 +29,11 @@
     {% if dokumenty %}
       <ul class="seznam-cisty">
       {% for d in dokumenty %}
-        <li><a href="/dokumenty/{{ d.id }}">{{ d.popis }}</a> <span class="tlumene mala">{{ t.ct }}/{{ d.ct1 }}, PDF</span></li>
+        <li><a href="{{ PSP_URL }}{{ d.url }}" target="_blank" rel="noopener">{{ d.popis }}</a> <span class="tlumene mala">{{ t.ct }}/{{ d.ct1 }}, PDF na psp.cz</span></li>
       {% endfor %}
       </ul>
     {% else %}
-      <p class="tlumene">Soubory tisku zatím nejsou stažené. Najdeš je v <a href="{{ psp_url }}" target="_blank" rel="noopener">průběhu na psp.cz</a>.</p>
+      <p class="tlumene">Odkazy na soubory tisku zatím nejsou načtené. Najdeš je v <a href="{{ psp_url }}" target="_blank" rel="noopener">průběhu na psp.cz</a>.</p>
     {% endif %}
   </section>
 </div>
@@ -46,7 +46,7 @@
     <span class="cisla tlumene">SD {{ n.cislo }}</span>
     <span>{% if n.id_poslanec %}<a href="/poslanec/{{ n.id_poslanec }}">{{ n.jmeno }} {{ n.prijmeni }}</a>{% else %}{{ n.jmeno }} {{ n.prijmeni }}{% endif %}
       {% if n.popis %}<span class="tlumene mala">{{ n.popis }}</span>{% endif %}</span>
-    <span class="nowrap">{% if n.id_souboru %}<a href="/dokumenty/{{ n.id_souboru }}">Zobrazit návrh</a>{% else %}<span class="tlumene mala">soubor nestažen</span>{% endif %}
+    <span class="nowrap">{% if n.url_souboru %}<a href="{{ PSP_URL }}{{ n.url_souboru }}" target="_blank" rel="noopener">Stáhnout návrh (DOCX)</a>{% else %}<span class="tlumene mala">odkaz zatím nenačten</span>{% endif %}
       <span class="tlumene mala">{{ n.datum | datum }}</span></span>
   </li>
   {% endfor %}

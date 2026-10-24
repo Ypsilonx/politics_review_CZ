@@ -1,9 +1,10 @@
-"""Stažení souborů sněmovních tisků: PDF verzí tisku a DOCX pozměňovacích návrhů (rozhodnutí 1A).
+"""Odkazy na soubory sněmovních tisků: PDF verzí tisku a DOCX pozměňovacích návrhů (rozhodnutí 1A).
 
-Odkazy na soubory nejsou v otevřených datech, proto se pro každý tisk čte stránka historie
+Odkazy nejsou v otevřených datech, proto se pro každý tisk čte stránka historie
 (``historie.sqw``) a stránky jednotlivých verzí (``tiskt.sqw``). Historie aktivních tisků
 (projednávaných v nedávné schůzi) se obnovuje po ``OBNOVA_HISTORIE``, ostatní jen jednou.
-Samotné soubory jsou podle ``idd`` neměnné, stahují se jednou.
+Samotné soubory se nestahují – v evidenci je jen jejich odkaz na psp.cz (``cesta`` je NULL)
+a aplikace na něj odkazuje; uživatel si otevře jen to, co chce číst.
 """
 
 import sqlite3
@@ -14,7 +15,6 @@ from politika import config
 from politika.db.dotazy.spolecne import aktualni_obdobi
 from politika.dokumenty.evidence import je_starsi_nez, zaeviduj
 from politika.dokumenty.odkazy import pdf_tisku, pozmenovaci_navrhy, verze_tisku
-from politika.dokumenty.prevod import docx_na_html
 from politika.dokumenty.stahovani import PSP_URL, Stahovac, precti_html
 
 OBNOVA_HISTORIE = timedelta(hours=20)
@@ -60,12 +60,12 @@ def tisky_obdobi(conn: sqlite3.Connection) -> list[tuple[int, bool]]:
     )]
 
 
-def stahni_soubory_tisku(conn: sqlite3.Connection, st: Stahovac, ct: int,
-                         aktivni: bool = True) -> int:
-    """Stáhne historii tisku, PDF jeho verzí a DOCX pozměňovacích návrhů (DOCX i převede na HTML).
+def stahni_odkazy_tisku(conn: sqlite3.Connection, st: Stahovac, ct: int,
+                        aktivni: bool = True) -> int:
+    """Stáhne historii tisku a stránky jeho verzí a zaeviduje odkazy na PDF verzí a DOCX návrhů.
 
     :param aktivni: u aktivního tisku se stránka historie po čase stáhne znovu (přibývají návrhy)
-    :return: počet nově stažených souborů (PDF + DOCX)
+    :return: počet nově zaevidovaných odkazů (PDF + DOCX)
     """
     slozka = config.DATA_DIR / "dokumenty" / "tisky" / f"{ct:04d}"
     url_historie = f"/sqw/historie.sqw?T={ct}&O=10"
@@ -78,13 +78,13 @@ def stahni_soubory_tisku(conn: sqlite3.Connection, st: Stahovac, ct: int,
 
     nove = 0
 
-    def soubor(url: str, cil, typ: str, **udaje) -> None:
-        """Stáhne neměnný soubor, pokud ještě není evidovaný, a zaeviduje ho."""
+    def odkaz(url: str, typ: str, **udaje) -> None:
+        """Zaeviduje odkaz na neměnný soubor (bez stažení), pokud ještě není v evidenci."""
         nonlocal nove
         url = _relativni(url)
         if _evidovano(conn, url):
             return
-        zaeviduj(conn, url, typ, st.stahni(url, cil), ct=ct, **udaje)
+        zaeviduj(conn, url, typ, None, ct=ct, **udaje)
         nove += 1
 
     for ct1 in verze_tisku(historie, ct):
@@ -94,15 +94,12 @@ def stahni_soubory_tisku(conn: sqlite3.Connection, st: Stahovac, ct: int,
             zaeviduj(conn, url_verze, "tisk_verze", cesta, ct=ct, ct1=ct1)
         for url_pdf, nazev in pdf_tisku(precti_html(cesta)):
             if (nazev := bezpecny_nazev(nazev)) is not None:
-                soubor(url_pdf, slozka / nazev, "tisk_pdf", ct1=ct1, nazev=nazev)
+                odkaz(url_pdf, "tisk_pdf", ct1=ct1, nazev=nazev)
 
     for navrh in pozmenovaci_navrhy(historie):
         if (nazev := bezpecny_nazev(navrh.soubor)) is None:
             continue
-        cil = config.DATA_DIR / "dokumenty" / "sd" / nazev
-        soubor(navrh.url, cil, "sd_docx", cislo_sd=navrh.cislo_sd, id_osoba=navrh.id_osoba,
-               nazev=nazev, popis=navrh.popis, datum=navrh.datum)
-        if cil.suffix.lower() == ".docx":
-            docx_na_html(cil)
+        odkaz(navrh.url, "sd_docx", cislo_sd=navrh.cislo_sd, id_osoba=navrh.id_osoba,
+              nazev=nazev, popis=navrh.popis, datum=navrh.datum)
     conn.commit()
     return nove

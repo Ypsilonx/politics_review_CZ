@@ -25,7 +25,7 @@ def verze_s_navrhy(historie_html: str, ct: int) -> int | None:
 
 
 def dokument_navrhu(conn: sqlite3.Connection, ct: int) -> str | None:
-    """Vrátí URL PDF verze tisku se souhrnem pozměňovacích návrhů, je-li stažená."""
+    """Vrátí URL PDF verze tisku se souhrnem pozměňovacích návrhů, je-li v evidenci."""
     historie = conn.execute(
         "SELECT cesta FROM dokument WHERE typ = 'tisk_historie' AND ct = ?", (ct,)
     ).fetchone()

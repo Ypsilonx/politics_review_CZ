@@ -9,9 +9,9 @@ from politika.analyza.predpocet import prepocitej
 from politika.db.connection import get_connection
 from politika.dokumenty.foto import stahni_fotky
 from politika.dokumenty.kancelare import obnov_kancelare
-from politika.dokumenty.stahovani import Stahovac
+from politika.dokumenty.stahovani import MimoNocniOkno, Stahovac
 from politika.dokumenty.steno import schuze_obdobi, stahni_steno_schuze
-from politika.dokumenty.tisky import stahni_soubory_tisku, tisky_obdobi
+from politika.dokumenty.tisky import stahni_odkazy_tisku, tisky_obdobi
 from politika.importer.opendata import importuj_vse, stahni_opendata
 from politika.parovani.sluzba import paruj_schuzi
 
@@ -30,6 +30,8 @@ class Prubeh:
         """
         try:
             print(f"{popis}: {funkce()}", flush=True)
+        except MimoNocniOkno:
+            raise  # konec nočního okna ukončuje celé stahování, není to chyba kroku
         except Exception as chyba:  # noqa: BLE001 – viz docstring
             self.chyb += 1
             print(f"{popis}: CHYBA {type(chyba).__name__}: {chyba}", flush=True)
@@ -47,27 +49,35 @@ def _importuj(stahnout: bool) -> dict[str, int]:
 
 
 def _stahni_dokumenty(prubeh: Prubeh, schuze: list[int], tisky: list[int],
-                      kancelare: bool, fotky: bool) -> None:
-    """Stáhne stenozáznamy, soubory tisků, kanceláře a fotky; bez výběru vše pro celé období.
+                      kancelare: bool, fotky: bool, ihned: bool) -> None:
+    """Stáhne stenozáznamy, stránky tisků, kanceláře a fotky; bez výběru vše pro celé období.
 
     Pořadí: nejdřív malé věci (kanceláře, fotky), pak schůze od nejnovější a aktivní tisky –
     aby čerstvá data byla k dispozici co nejdřív i při prvním dlouhém běhu.
+
+    :param ihned: stahovat i mimo noční okno (``config.NOCNI_OKNO``); jinak se na jeho konci
+        stahování ukončí a zbytek dostáhne další běh
     """
     conn = get_connection(config.DB_PATH)
     vse = not (schuze or tisky or kancelare or fotky)
     vybrane_schuze = schuze or (sorted(schuze_obdobi(conn), reverse=True) if vse else [])
     vybrane_tisky = [(ct, True) for ct in tisky] if tisky else (
         sorted(tisky_obdobi(conn), key=lambda t: not t[1]) if vse else [])
-    with Stahovac() as st:
-        if vse or kancelare:
-            prubeh.krok("kanceláře", lambda: obnov_kancelare(conn, st))
-        if vse or fotky:
-            prubeh.krok("nové fotky", lambda: stahni_fotky(conn, st))
-        for s in vybrane_schuze:
-            prubeh.krok(f"schůze {s}, úseků", lambda s=s: stahni_steno_schuze(conn, st, s))
-        for ct, aktivni in vybrane_tisky:
-            prubeh.krok(f"tisk {ct}, souborů",
-                        lambda ct=ct, aktivni=aktivni: stahni_soubory_tisku(conn, st, ct, aktivni))
+    with Stahovac(jen_v_noci=not ihned) as st:
+        try:
+            if vse or kancelare:
+                prubeh.krok("kanceláře", lambda: obnov_kancelare(conn, st))
+            if vse or fotky:
+                prubeh.krok("nové fotky", lambda: stahni_fotky(conn, st))
+            for s in vybrane_schuze:
+                prubeh.krok(f"schůze {s}, úseků", lambda s=s: stahni_steno_schuze(conn, st, s))
+            for ct, aktivni in vybrane_tisky:
+                prubeh.krok(f"tisk {ct}, odkazů",
+                            lambda ct=ct, aktivni=aktivni: stahni_odkazy_tisku(conn, st, ct, aktivni))
+        except MimoNocniOkno:
+            od, do = config.NOCNI_OKNO
+            print(f"mimo noční okno ({od}–{do} h): zbytek se stáhne příští noc "
+                  "(hned: --ihned)", flush=True)
         print(f"požadavků na psp.cz: {st.pocet_pozadavku}")
     conn.close()
 
@@ -96,7 +106,7 @@ def cmd_import(args: argparse.Namespace) -> None:
 def cmd_stahni_dokumenty(args: argparse.Namespace) -> None:
     """Stáhne dokumenty z psp.cz; při chybách skončí s kódem 1."""
     prubeh = Prubeh()
-    _stahni_dokumenty(prubeh, args.schuze, args.tisk, args.kancelare, args.fotky)
+    _stahni_dokumenty(prubeh, args.schuze, args.tisk, args.kancelare, args.fotky, args.ihned)
     sys.exit(1 if prubeh.chyb else 0)
 
 
@@ -114,7 +124,7 @@ def cmd_obnova(args: argparse.Namespace) -> None:
     """
     prubeh = Prubeh()
     prubeh.krok("import otevřených dat", lambda: sum(_importuj(stahnout=True).values()))
-    _stahni_dokumenty(prubeh, [], [], kancelare=False, fotky=False)
+    _stahni_dokumenty(prubeh, [], [], kancelare=False, fotky=False, ihned=args.ihned)
     _paruj(prubeh, [])
     sys.exit(1 if prubeh.chyb else 0)
 
@@ -127,6 +137,9 @@ def cmd_web(args: argparse.Namespace) -> None:
                 reload=args.reload)
 
 
+IHNED_HELP = "stahovat z psp.cz i mimo noční okno (config.NOCNI_OKNO)"
+
+
 def main() -> None:
     """Vstupní bod CLI."""
     parser = argparse.ArgumentParser(prog="politika")
@@ -135,16 +148,18 @@ def main() -> None:
     p.add_argument("--bez-stazeni", action="store_true", help="použít už stažená data")
     p.set_defaults(func=cmd_import)
     p = sub.add_parser("stahni-dokumenty",
-                       help="stáhnout stenozáznamy, soubory tisků, kanceláře a fotky z psp.cz")
+                       help="stáhnout stenozáznamy, stránky tisků, kanceláře a fotky z psp.cz")
     p.add_argument("--schuze", type=int, nargs="*", default=[], help="jen tyto schůze")
     p.add_argument("--tisk", type=int, nargs="*", default=[], help="jen tyto tisky (čísla)")
     p.add_argument("--kancelare", action="store_true", help="jen mapa regionálních kanceláří")
     p.add_argument("--fotky", action="store_true", help="jen fotky poslanců")
+    p.add_argument("--ihned", action="store_true", help=IHNED_HELP)
     p.set_defaults(func=cmd_stahni_dokumenty)
     p = sub.add_parser("paruj", help="najít předmět hlasování ve stenozáznamech")
     p.add_argument("--schuze", type=int, nargs="*", default=[], help="jen tyto schůze")
     p.set_defaults(func=cmd_paruj)
     p = sub.add_parser("obnova", help="denní obnova: import, dokumenty, párování")
+    p.add_argument("--ihned", action="store_true", help=IHNED_HELP)
     p.set_defaults(func=cmd_obnova)
     p = sub.add_parser("web", help="spustit webové rozhraní")
     # 127.0.0.1 = jen tento počítač; na domácím serveru --host 0.0.0.0 (celá domácí síť).
