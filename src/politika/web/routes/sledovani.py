@@ -1,16 +1,15 @@
 """Routy: sledovaní poslanci a kluby (správa skupin) a Přehled s proudem jejich hlasování."""
 
 import sqlite3
-from urllib.parse import urlsplit
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Request
+from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from politika.db.dotazy import schuze as dotazy_schuze
 from politika.db.dotazy import sledovani as dotazy
 from politika.db.dotazy.hlasovani import seznam_hlasovani
 from politika.db.dotazy.poslanci import hledej_poslance
-from politika.web.app import get_db, templates
+from politika.web.app import get_db, templates, z_teto_aplikace
 
 router = APIRouter()
 
@@ -59,7 +58,7 @@ def pridat(request: Request, typ: str = Form(...), id: int = Form(...),
            skupina: str = Form(dotazy.VYCHOZI_SKUPINA), zpet: str = Form("/sledovani"),
            conn: sqlite3.Connection = Depends(get_db)):
     """Přidá poslance / klub do skupiny. HTMX dostane nové tlačítko, jinak přesměrování zpět."""
-    _z_teto_aplikace(request)
+    z_teto_aplikace(request)
     if typ in ("poslanec", "klub"):
         dotazy.pridej(conn, typ, id, skupina)
     return _odpoved(request, typ, id, zpet, conn)
@@ -70,20 +69,9 @@ def odebrat(request: Request, typ: str = Form(...), id: int = Form(...),
             skupina: str = Form(""), zpet: str = Form("/sledovani"),
             conn: sqlite3.Connection = Depends(get_db)):
     """Odebere poslance / klub ze skupiny (bez skupiny ze všech)."""
-    _z_teto_aplikace(request)
+    z_teto_aplikace(request)
     dotazy.odeber(conn, typ, id, skupina or None)
     return _odpoved(request, typ, id, zpet, conn)
-
-
-def _z_teto_aplikace(request: Request) -> None:
-    """Ochrana proti CSRF: změnu přijme jen z vlastní stránky (Origin, případně Referer).
-
-    Prohlížeč posílá u POST formuláře hlavičku Origin; cizí stránka v domácí síti tak nemůže
-    měnit sledované. Požadavek bez obou hlaviček (např. curl) se nepovažuje za útok z prohlížeče.
-    """
-    zdroj = request.headers.get("origin") or request.headers.get("referer")
-    if zdroj and urlsplit(zdroj).netloc != request.url.netloc:
-        raise HTTPException(403, "Změna je povolená jen ze stránek této aplikace.")
 
 
 def _odpoved(request: Request, typ: str, id_: int, zpet: str, conn: sqlite3.Connection):

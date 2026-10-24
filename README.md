@@ -44,7 +44,10 @@ na psp.cz. Aplikaci můžeš používat hned, data se průběžně doplňují.
 
 ## Denní obnova
 
-Sněmovna aktualizuje otevřená data jednou denně. Obnovu spouští jeden příkaz:
+Sněmovna aktualizuje otevřená data jednou denně. Nejjednodušší je tlačítko **Aktualizovat data**
+na Přehledu: přes den stáhne otevřená data a stenozáznamy schůzí z posledních 7 dní
+(`DNY_CERSTVYCH` v `src/politika/config.py`), v nočním okně dostáhne i starší. Výpis běhu je
+v `data/aktualizace.log`. Totéž z příkazové řádky, případně naplánované:
 
 ```bash
 uv run politika obnova

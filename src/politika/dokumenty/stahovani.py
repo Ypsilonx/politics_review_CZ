@@ -34,8 +34,9 @@ class Stahovac:
     def __init__(self, client: httpx.Client | None = None, jen_v_noci: bool = False) -> None:
         """:param client: vlastní klient (pro testy); jinak se vytvoří s User-Agentem a retries.
         :param jen_v_noci: mimo noční okno požadavek nepošle a vyhodí ``MimoNocniOkno``
+            (atribut ``jen_v_noci`` jde měnit mezi kroky jednoho běhu)
         """
-        self._jen_v_noci = jen_v_noci
+        self.jen_v_noci = jen_v_noci
         # psp.cz občas nedokončí TLS handshake nového spojení; krátký connect timeout + retries
         # takové spojení rychle zahodí a zkusí znovu (jinak se čeká ~20 s na limit OS).
         self._client = client or httpx.Client(
@@ -58,7 +59,7 @@ class Stahovac:
         Když server nepřijímá spojení ani po opakování v transportu (omezuje nová spojení),
         počká postupně ``CEKANI_PRI_VYPADKU`` sekund a zkusí to znovu; pak výjimku propustí.
         """
-        if self._jen_v_noci and not v_nocnim_okne():
+        if self.jen_v_noci and not v_nocnim_okne():
             raise MimoNocniOkno
         for cekani in (*CEKANI_PRI_VYPADKU, None):
             cekat = self._posledni + config.PAUZA_MEZI_POZADAVKY - time.monotonic()

@@ -27,6 +27,7 @@
       <p class="mala">Poslední schůze: <a href="/schuze/{{ posledni_schuze.cislo }}">{{ posledni_schuze.cislo }}. schůze</a>,
         {{ posledni_schuze.hlasovani }} hlasování{% if not posledni_schuze.do %}, probíhá{% endif %}.</p>
       {% endif %}
+      <div hx-get="/aktualizace" hx-trigger="load" hx-swap="outerHTML"></div>
     </section>
     <section class="panel">
       <h3>Hlasování o celých návrzích</h3>

@@ -11,13 +11,15 @@ Návrh: `docs/specs/2026-10-24-sledovani-poslancu-design.md`.
   příkaz `obnova`, README, projektový CLAUDE.md.
 - Revize kódu (9 nálezů) opravena. Stahování z psp.cz jen v noci 22–6 h (`--ihned` mimo okno),
   kontakt v User-Agentu z `POLITIKA_KONTAKT`, soubory tisků a návrhů jen jako odkazy na psp.cz.
+- Tlačítko „Aktualizovat data“ na Přehledu (obnova na pozadí; Plánovač úloh uživatel nechce).
 
 ## Rozpracováno
-- První kompletní stažení stenozáznamů (hotovo schůze 35–25, zbytek po nocích přes `obnova`).
+- První kompletní stažení stenozáznamů: hotovo schůze 35–11, zbytek v noci tlačítkem.
 
 ## Další krok
-- Naplánovat denní `obnova` ve 22:05 (Plánovač úloh, příkaz v README) – vytvoří uživatel.
 - Ověřit `obnova` 2× po sobě (druhý běh nemá nic stahovat).
+- Statistiky poslance za celé působení ve sněmovně, ne jen za aktuální období: doimportovat
+  hlasování starších období (`hl-2021ps` a starší), v profilu přepínač období (větší DB).
 - Později: AI shrnutí návrhů, dění kolem politika na webu, veřejné nasazení (licence, přihlášení).
 
 ## Otevřené otázky / slepé uličky

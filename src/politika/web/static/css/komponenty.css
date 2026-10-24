@@ -55,6 +55,12 @@
 .legenda { display: flex; flex-wrap: wrap; gap: .4rem 1.25rem; margin-top: .6rem; }
 
 .panel { background: var(--plocha); border: 1px solid var(--okraj); border-radius: var(--radius); padding: 1.1rem 1.25rem; }
+.aktualizace { margin-top: .75rem; }
+.aktualizace p { margin: .5rem 0 0; }
+.vypis-aktualizace {
+  margin: .5rem 0 0; padding: .5rem .6rem; font-size: .75rem; line-height: 1.4; white-space: pre-wrap;
+  overflow-wrap: anywhere; background: var(--pozadi); border: 1px solid var(--okraj); border-radius: var(--radius);
+}
 
 /* --- Tabulka hlasování --- */
 .tabulka { width: 100%; border-collapse: collapse; }

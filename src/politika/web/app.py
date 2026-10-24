@@ -3,8 +3,9 @@
 import sqlite3
 from collections.abc import Iterator
 from pathlib import Path
+from urllib.parse import urlsplit
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -64,10 +65,22 @@ def get_db() -> Iterator[sqlite3.Connection]:
         conn.close()
 
 
+def z_teto_aplikace(request: Request) -> None:
+    """Ochrana proti CSRF: změnu přijme jen z vlastní stránky (Origin, případně Referer).
+
+    Prohlížeč posílá u POST formuláře hlavičku Origin; cizí stránka v domácí síti tak nemůže
+    nic měnit ani spouštět. Požadavek bez obou hlaviček (např. curl) se nepovažuje za útok
+    z prohlížeče.
+    """
+    zdroj = request.headers.get("origin") or request.headers.get("referer")
+    if zdroj and urlsplit(zdroj).netloc != request.url.netloc:
+        raise HTTPException(403, "Změna je povolená jen ze stránek této aplikace.")
+
+
 def create_app() -> FastAPI:
     """Sestaví aplikaci s routami a statickými soubory."""
     from politika.web.routes import (
-        hlasovani, hledani, mapa, poslanci, schuze, sledovani, statistiky, tisky,
+        aktualizace, hlasovani, hledani, mapa, poslanci, schuze, sledovani, statistiky, tisky,
     )
 
     app = FastAPI(title="Sledování poslanců")
@@ -80,6 +93,7 @@ def create_app() -> FastAPI:
     app.include_router(mapa.router)
     app.include_router(sledovani.router)
     app.include_router(hledani.router)
+    app.include_router(aktualizace.router)
 
     @app.get("/", include_in_schema=False)
     def index() -> RedirectResponse:

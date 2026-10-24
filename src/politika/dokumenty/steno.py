@@ -29,6 +29,15 @@ def schuze_obdobi(conn: sqlite3.Connection) -> list[int]:
     )]
 
 
+def cerstve_schuze(conn: sqlite3.Connection, dny: int) -> set[int]:
+    """Vrátí čísla schůzí aktuálního období s hlasováním za posledních ``dny`` dní."""
+    hranice = (date.today() - timedelta(days=dny)).isoformat()
+    return {r[0] for r in conn.execute(
+        "SELECT DISTINCT schuze FROM hlasovani WHERE id_organ = ? AND datum >= ?",
+        (aktualni_obdobi(conn), hranice),
+    )}
+
+
 def _minuty(cas: str) -> int:
     """Převede ``HH:MM`` na minuty od půlnoci."""
     return int(cas[:2]) * 60 + int(cas[3:5])

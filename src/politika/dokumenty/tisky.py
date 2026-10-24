@@ -60,6 +60,24 @@ def tisky_obdobi(conn: sqlite3.Connection) -> list[tuple[int, bool]]:
     )]
 
 
+def tisky_schuzi(conn: sqlite3.Connection, schuze: set[int]) -> set[int]:
+    """Vrátí čísla tisků aktuálního období, o kterých se hlasovalo na daných schůzích."""
+    if not schuze:
+        return set()
+    return {r[0] for r in conn.execute(
+        f"""
+        SELECT DISTINCT t.ct
+        FROM hlasovani h
+        JOIN schuze s ON s.id_organ = h.id_organ AND s.cislo = h.schuze
+        JOIN bod b ON b.id_schuze = s.id_schuze AND b.cislo = h.bod
+        JOIN tisk t ON t.id_tisk = b.id_tisk
+        WHERE h.id_organ = ? AND t.id_obdobi = h.id_organ
+          AND h.schuze IN ({', '.join('?' * len(schuze))})
+        """,
+        (aktualni_obdobi(conn), *schuze),
+    )}
+
+
 def stahni_odkazy_tisku(conn: sqlite3.Connection, st: Stahovac, ct: int,
                         aktivni: bool = True) -> int:
     """Stáhne historii tisku a stránky jeho verzí a zaeviduje odkazy na PDF verzí a DOCX návrhů.

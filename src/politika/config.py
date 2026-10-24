@@ -27,3 +27,5 @@ PAUZA_MEZI_POZADAVKY = 1.0
 # Dokumenty z psp.cz se stahují jen v noci (hodina od, hodina do; přes půlnoc), mimo okno
 # jen s --ihned. Šetří server ve špičce; nedokončené stažení pokračuje další noc.
 NOCNI_OKNO = (22, 6)
+# Tlačítko „Aktualizovat“ stahuje i přes den schůze s hlasováním za posledních tolik dní.
+DNY_CERSTVYCH = 7

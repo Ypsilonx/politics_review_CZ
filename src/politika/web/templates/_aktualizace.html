@@ -1,0 +1,18 @@
+{# Panel aktualizace dat; během běhu se každé 3 s načte znovu (routes/aktualizace.py). #}
+<div id="aktualizace" class="aktualizace"
+     {% if bezi %}hx-get="/aktualizace" hx-trigger="every 3s" hx-swap="outerHTML"{% endif %}>
+  {% if bezi %}
+    <p class="mala"><b>Aktualizuji…</b> <span class="tlumene">od {{ spusteno.strftime("%H:%M") }}</span></p>
+  {% else %}
+    <button class="tlacitko" hx-post="/aktualizace" hx-target="#aktualizace" hx-swap="outerHTML">Aktualizovat data</button>
+    {% if kod is not none %}
+      <p class="mala">{% if kod == 0 %}Hotovo{% else %}Hotovo s chybami{% endif %}
+        <span class="tlumene">(spuštěno {{ spusteno.strftime("%H:%M") }})</span>.
+        <a href="/prehled">Načíst nová data</a></p>
+    {% else %}
+      <p class="tlumene mala">Stáhne nová data sněmovny a stenozáznamy schůzí z posledních dní.
+        Mezi {{ okno[0] }} a {{ okno[1] }} h dostáhne i starší schůze.</p>
+    {% endif %}
+  {% endif %}
+  {% if radky %}<pre class="vypis-aktualizace">{{ radky | join("\n") }}</pre>{% endif %}
+</div>
