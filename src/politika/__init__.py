@@ -1,2 +1,1 @@
-def main() -> None:
-    print("Hello from politika!")
+"""Osobní přehled hlasování poslanců PSP ČR."""

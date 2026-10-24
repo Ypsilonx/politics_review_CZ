@@ -1,0 +1,1 @@
+"""Import otevřených dat PSP."""
