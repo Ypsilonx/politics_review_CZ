@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Hledání – Sledování poslanců{% endblock %}
+{% block content %}
+<h1>Hledání</h1>
+<form class="radek-formulare hledani-stranka" action="/hledat" role="search">
+  <label class="sr-only" for="hledat-znovu">Co hledáš</label>
+  <input id="hledat-znovu" type="search" name="q" value="{{ q }}" placeholder="Jméno, číslo tisku, název zákona nebo hlasování 34/288" autofocus>
+  <button type="submit">Hledat</button>
+</form>
+
+{% if q %}
+  {% if not poslanci and not tisky %}
+    <p class="tlumene">Pro „{{ q }}“ nic nenalezeno. Zkus jen část jména, číslo tisku nebo hlasování ve tvaru <b>schůze/číslo</b> (např. 34/288).</p>
+  {% endif %}
+  {% if poslanci %}
+    <h2>Poslanci</h2>
+    {% include "_poslanci_seznam.html" %}
+  {% endif %}
+  {% if tisky %}
+    <h2>Zákony a tisky</h2>
+    {% include "_zakony_seznam.html" %}
+  {% endif %}
+{% else %}
+  <p class="tlumene">Hledat můžeš poslance podle jména, zákony podle čísla tisku nebo slova z názvu a konkrétní hlasování ve tvaru <b>schůze/číslo</b> (např. 34/288).</p>
+{% endif %}
+{% endblock %}

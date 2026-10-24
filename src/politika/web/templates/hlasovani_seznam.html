@@ -25,6 +25,7 @@
   <label class="zaskrtavatko"><input type="checkbox" name="tesna" value="true" {% if filtry.tesna %}checked{% endif %}>
     Jen těsná <span class="tlumene mala">(rozhodlo ≤ {{ tesne_rozpeti }} hlasů)</span></label>
   <button type="submit">Filtrovat</button>
+  <a class="mala" href="/hlasovani.csv?{{ request.url.query }}">Stáhnout CSV</a>
 </form>
 
 {{ tabulka_hlasovani(hlasovani, prazdne="Filtrům neodpovídá žádné hlasování.") }}

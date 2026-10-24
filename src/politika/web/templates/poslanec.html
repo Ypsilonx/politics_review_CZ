@@ -68,6 +68,7 @@
     </nav>
 
     {% if zalozka == "hlasovani" %}
+      <p class="mala zarovnat-vpravo"><a href="/poslanec/{{ poslanec.id_poslanec }}/hlasovani.csv">Stáhnout všechna hlasování (CSV)</a></p>
       {{ tabulka_hlasovani(hlasovani, s_hlasem=True, prazdne="Poslanec zatím nehlasoval.") }}
       {{ strankovani(request, strana, dalsi) }}
 

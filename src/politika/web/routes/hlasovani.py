@@ -7,6 +7,7 @@ from fastapi.responses import HTMLResponse
 
 from politika.db.dotazy import hlasovani as dotazy
 from politika.web.app import HLAS_TEXT, get_db, templates
+from politika.web.export import HLAVICKA_HLASOVANI, csv_odpoved, radek_hlasovani
 from politika.web.grafy import rozlozeni_sedadel
 
 router = APIRouter()
@@ -43,6 +44,18 @@ def seznam(request: Request, schuze: int | None = None, vysledek: str = "", tesn
         "hlasovani": radky[:NA_STRANKU], "strana": strana, "dalsi": len(radky) > NA_STRANKU,
         "filtry": filtry, "tesne_rozpeti": dotazy.TESNE_ROZPETI,
     })
+
+
+# Nejvýš tolik řádků v jednom exportu (celé období má řádově tisíce hlasování).
+MAX_EXPORT = 20000
+
+
+@router.get("/hlasovani.csv")
+def export(schuze: int | None = None, vysledek: str = "", tesna: bool = False, druh: str = "",
+           conn: sqlite3.Connection = Depends(get_db)):
+    """Hlasování se stejnými filtry jako seznam, jako CSV pro Excel."""
+    radky = dotazy.seznam_hlasovani(conn, schuze, vysledek or None, tesna, druh or None, MAX_EXPORT)
+    return csv_odpoved("hlasovani.csv", HLAVICKA_HLASOVANI, (radek_hlasovani(h) for h in radky))
 
 
 @router.get("/hlasovani/{id_hlasovani}", response_class=HTMLResponse)

@@ -321,3 +321,7 @@
   .prehled { grid-template-columns: 1fr; }
   .prehled-bok { position: static; }
 }
+.hledani-stranka { max-width: 40rem; margin: 1rem 0 1.5rem; }
+.hledani-stranka input { flex: 1; }
+.zarovnat-vpravo { text-align: right; margin: 0 0 .5rem; }
+.nadpis-odkaz { font-family: var(--pismo); font-weight: 400; margin-left: 1rem; }

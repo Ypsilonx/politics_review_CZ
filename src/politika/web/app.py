@@ -66,7 +66,7 @@ def get_db() -> Iterator[sqlite3.Connection]:
 def create_app() -> FastAPI:
     """Sestaví aplikaci s routami a statickými soubory."""
     from politika.web.routes import (
-        dokumenty, hlasovani, mapa, poslanci, schuze, sledovani, statistiky, tisky,
+        dokumenty, hlasovani, hledani, mapa, poslanci, schuze, sledovani, statistiky, tisky,
     )
 
     app = FastAPI(title="Sledování poslanců")
@@ -79,6 +79,7 @@ def create_app() -> FastAPI:
     app.include_router(statistiky.router)
     app.include_router(mapa.router)
     app.include_router(sledovani.router)
+    app.include_router(hledani.router)
 
     @app.get("/", include_in_schema=False)
     def index() -> RedirectResponse:

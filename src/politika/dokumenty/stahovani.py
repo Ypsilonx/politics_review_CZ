@@ -9,6 +9,8 @@ from politika import config
 
 PSP_URL = "https://www.psp.cz"
 KODOVANI_PSP = "cp1250"
+# Čekání (s) před dalšími pokusy, když psp.cz dočasně nepřijímá spojení.
+CEKANI_PRI_VYPADKU = (15, 60, 180)
 
 
 class Stahovac:
@@ -36,15 +38,25 @@ class Stahovac:
         self._client.close()
 
     def _get(self, url: str) -> httpx.Response:
-        """Stáhne URL (relativní k psp.cz) po dodržení pauzy; při HTTP chybě vyhodí výjimku."""
-        cekat = self._posledni + config.PAUZA_MEZI_POZADAVKY - time.monotonic()
-        if cekat > 0:
-            time.sleep(cekat)
-        try:
-            odpoved = self._client.get(url if url.startswith("http") else PSP_URL + url)
-        finally:
-            self._posledni = time.monotonic()
-            self.pocet_pozadavku += 1
+        """Stáhne URL (relativní k psp.cz) po dodržení pauzy; při HTTP chybě vyhodí výjimku.
+
+        Když server nepřijímá spojení ani po opakování v transportu (omezuje nová spojení),
+        počká postupně ``CEKANI_PRI_VYPADKU`` sekund a zkusí to znovu; pak výjimku propustí.
+        """
+        for cekani in (*CEKANI_PRI_VYPADKU, None):
+            cekat = self._posledni + config.PAUZA_MEZI_POZADAVKY - time.monotonic()
+            if cekat > 0:
+                time.sleep(cekat)
+            try:
+                odpoved = self._client.get(url if url.startswith("http") else PSP_URL + url)
+                break
+            except httpx.TransportError:
+                if cekani is None:
+                    raise
+                time.sleep(cekani)
+            finally:
+                self._posledni = time.monotonic()
+                self.pocet_pozadavku += 1
         odpoved.raise_for_status()
         return odpoved
 

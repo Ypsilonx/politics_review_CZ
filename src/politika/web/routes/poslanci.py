@@ -12,6 +12,7 @@ from politika.db.dotazy import poslanci as dotazy
 from politika.db.dotazy.sledovani import je_sledovany
 from politika.dokumenty.foto import cesta_fotky
 from politika.web.app import get_db, templates
+from politika.web.export import HLAVICKA_HLASOVANI, csv_odpoved, radek_hlasovani, text_hlasu
 
 router = APIRouter()
 
@@ -101,3 +102,15 @@ def foto(id_osoba: int) -> FileResponse:
         raise HTTPException(404, "Fotka není k dispozici")
     return FileResponse(cesta, media_type="image/jpeg",
                         headers={"Cache-Control": "public, max-age=604800"})
+
+
+@router.get("/poslanec/{id_poslanec}/hlasovani.csv")
+def export_hlasovani(id_poslanec: int, conn: sqlite3.Connection = Depends(get_db)):
+    """Všechna hlasování poslance s jeho hlasem jako CSV."""
+    poslanec = dotazy.poslanec_detail(conn, id_poslanec)
+    if poslanec is None:
+        raise HTTPException(404, "Poslanec nenalezen")
+    radky = dotazy_hlasovani.hlasovani_poslance(conn, id_poslanec, limit=-1)
+    nazev = f"hlasovani-{poslanec['prijmeni']}-{poslanec['jmeno']}.csv"
+    return csv_odpoved(nazev, [*HLAVICKA_HLASOVANI, "hlasoval"],
+                       ([*radek_hlasovani(h), text_hlasu(h["hlas"])] for h in radky))

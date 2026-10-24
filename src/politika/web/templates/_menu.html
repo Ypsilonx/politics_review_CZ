@@ -17,9 +17,9 @@
         <a href="{{ cesta }}" {% if aktualni.startswith(cesta) or (cesta == "/poslanci" and aktualni.startswith("/poslanec/")) %}aria-current="page"{% endif %}>{{ nazev }}</a>
       {% endfor %}
     </nav>
-    <form class="hledani-lista" action="/poslanci" role="search">
-      <label class="sr-only" for="hledat-vse">Hledat poslance</label>
-      <input id="hledat-vse" type="search" name="q" placeholder="Hledat poslance…">
+    <form class="hledani-lista" action="/hledat" role="search">
+      <label class="sr-only" for="hledat-vse">Hledat poslance, zákon nebo hlasování</label>
+      <input id="hledat-vse" type="search" name="q" placeholder="Poslanec, zákon, 34/288…">
     </form>
     <button class="prepinac-rezimu" type="button" data-prepnout-rezim aria-label="Přepnout světlý / tmavý režim">
       <svg class="ikona-mesic" viewBox="0 0 20 20" aria-hidden="true"><path d="M15.5 12.8A7 7 0 0 1 7.2 4.5a7 7 0 1 0 8.3 8.3z"/></svg>
