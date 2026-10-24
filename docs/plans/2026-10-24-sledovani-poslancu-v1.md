@@ -88,11 +88,21 @@ tests/
 - **Ověření:** v prohlížeči (Playwright) najdu Stržínka, otevřu hlasování 288 a vidím hlasy po klubech.
 
 ### Task 3: Stahování dokumentů
-- **Soubory:** `dokumenty/stahovani.py`, rozšíření `schema.sql` o tabulku `dokument`
-  (typ, url, cesta, verze, stazeno), CLI `uv run politika stahni-dokumenty --schuze N`.
+Podle průzkumu (`docs/specs/2026-10-24-pruzkum-dat.md`) a rozhodnutí 1A/2A:
+- **Stenozáznamy:** denní stránka `/eknih/2025ps/stenprot/NNNschuz/S-D.html` → seznam úseků
+  `sNNNxxx.htm` → stáhnout úseky. Úsek, který je „neautorizováno“, se po několika dnech stáhne znovu.
+  (ZIPy po schůzích pro 2025ps vracejí 404. Až začnou fungovat, lze přejít na ně.)
+- **Soubory tisků:** pro tisk se jednou přečtou `historie.sqw?T={ct}&O=10` (odkazy `orig2.sqw?idd=`
+  u pozměňovacích návrhů SD) a `text/tiskt.sqw?o=10&ct={ct}&ct1={n}` (PDF verzí tisku).
+  Obnova jen u tisků, kterým v otevřených datech přibyl nový SD nebo stav.
+- **DOCX → HTML** přes `mammoth` (originál zůstává ke stažení), PDF se zobrazuje přímo.
+- **Soubory:** `dokumenty/stahovani.py`, `dokumenty/odkazy.py` (parsování seznamů odkazů, `beautifulsoup4`),
+  `dokumenty/prevod.py`, tabulka `dokument` (typ, url, idd, cesta, autorizovano, stazeno),
+  CLI `uv run politika stahni-dokumenty --schuze N`.
 - **Rozhraní:** `stahni(url: str, cil: Path, client: httpx.Client) -> Path` (cache + pauza);
-  `stahni_steno_schuze(conn, schuze: int) -> list[Path]`; `stahni_navrhy_tisku(conn, tisk: int) -> list[Path]`.
-- **Ověření:** stažení dokumentů pro 34. schůzi a při druhém spuštění se nestáhne nic.
+  `stahni_steno_schuze(conn, schuze: int) -> list[Path]`; `stahni_soubory_tisku(conn, ct: int) -> list[Path]`;
+  `docx_na_html(cesta: Path) -> str`.
+- **Ověření:** stažení dokumentů pro 34. schůzi a tisk 213. Při druhém spuštění se nestáhne nic.
 
 ### Task 4: Párování hlasování → předmět → PDF
 - **Soubory:** `parovani/steno.py`, `parovani/navrhy.py`, tabulka `predmet_hlasovani`
@@ -103,7 +113,11 @@ tests/
   - `rozpoznej_predmet(uryvek: str) -> Predmet` (dataclass: `druh` ∈ {"pozmenovaci", "celek",
     "proceduralni", "nezjisteno"}, `oznaceni: str | None`, např. "B2")
   - `prirad_dokument(conn, id_hlasovani: int, predmet: Predmet) -> int | None`
-- **Testy:** úryvek pro „hlasování pořadové číslo 288“ se najde i při zalomení řádku uprostřed věty;
+- **Pravidlo (z průzkumu):** číslo zazní až po hlasování („Hlasování číslo 274, přihlášeno…“),
+  předmět je před ním → úryvek = text od předchozí zmínky „hlasování (číslo) N-1“ po „hlasování číslo N“,
+  oříznutý na posledních ~1 500 znaků. Hledá se i v sousedním úseku (hlasování bývá na hranici úseků).
+- **Testy:** úryvek pro 34/274 („návrh pana poslance Bendy“) a 34/256 (přerušení schůze) z reálných úseků
+  `s034426.htm`, `s034402.htm`; nevyslovené číslo (34/257) → `nezjisteno`;
   rozpoznání A1/B2, „jako celek“ a procedurálního hlasování; nenalezené číslo → `nezjisteno`.
 - **Ověření:** report úspěšnosti pro 34. schůzi (kolik hlasování má předmět / PDF), detail hlasování 288
   v aplikaci ukazuje úryvek, označení návrhu a odkaz na PDF otevřitelné v prohlížeči.
