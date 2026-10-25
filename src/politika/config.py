@@ -29,3 +29,6 @@ PAUZA_MEZI_POZADAVKY = 1.0
 NOCNI_OKNO = (22, 6)
 # Tlačítko „Aktualizovat“ stahuje i přes den schůze s hlasováním za posledních tolik dní.
 DNY_CERSTVYCH = 7
+# Tlačítko „Aktualizovat“ jde použít jednou za den; nový den začíná v tuto hodinu
+# (0 = o půlnoci, 2 = ve 2:00). Chrání psp.cz před opakovaným klikáním.
+ZACATEK_DNE_AKTUALIZACE = 2

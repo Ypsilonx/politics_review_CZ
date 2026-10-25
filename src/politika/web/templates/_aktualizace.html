@@ -4,12 +4,18 @@
   {% if bezi %}
     <p class="mala"><b>Aktualizuji…</b> <span class="tlumene">od {{ spusteno.strftime("%H:%M") }}</span></p>
   {% else %}
-    <button class="tlacitko" hx-post="/aktualizace" hx-target="#aktualizace" hx-swap="outerHTML">Aktualizovat data</button>
+    <button class="tlacitko" hx-post="/aktualizace" hx-target="#aktualizace" hx-swap="outerHTML"
+            {% if blokovano_do %}disabled{% endif %}>Aktualizovat data</button>
+    {% if blokovano_do %}
+      <p class="tlumene mala">Dnes už aktualizováno, znovu od
+        {{ blokovano_do.day }}. {{ blokovano_do.month }}. {{ blokovano_do.strftime("%H:%M") }}
+        (šetříme server psp.cz).</p>
+    {% endif %}
     {% if kod is not none %}
       <p class="mala">{% if kod == 0 %}Hotovo{% else %}Hotovo s chybami{% endif %}
         <span class="tlumene">(spuštěno {{ spusteno.strftime("%H:%M") }})</span>.
         <a href="/prehled">Načíst nová data</a></p>
-    {% else %}
+    {% elif not blokovano_do %}
       <p class="tlumene mala">Stáhne nová data sněmovny a stenozáznamy schůzí z posledních dní.
         Mezi {{ okno[0] }} a {{ okno[1] }} h dostáhne i starší schůze.</p>
     {% endif %}

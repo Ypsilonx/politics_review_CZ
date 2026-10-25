@@ -375,6 +375,7 @@
 .tlacitko-sledovat button.aktivni { background: var(--zvyrazneni); border-color: var(--odkaz); }
 .tlacitko-sledovat button.aktivni::before { content: "✓ "; }
 .tlacitko.druhotne { background: none; }
+.tlacitko:disabled { opacity: .5; cursor: not-allowed; border-color: var(--okraj); }
 .odebrat { font-size: var(--t-mala); padding: .15rem .55rem; color: var(--text-tlumeny); }
 .prehled { display: grid; grid-template-columns: minmax(0, 1fr) 20rem; gap: 2rem; align-items: start; }
 .prehled-bok { display: grid; gap: 1rem; position: sticky; top: 4.5rem; }
