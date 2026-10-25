@@ -65,6 +65,29 @@ def kluby_obdobi(conn: sqlite3.Connection) -> list[sqlite3.Row]:
     ).fetchall()
 
 
+def zaloha(conn: sqlite3.Connection) -> list[dict]:
+    """Všechny sledované pro zálohu: ``[{typ, id, skupina, nazev}, …]`` (název jen pro čtení)."""
+    return [{k: p[k] for k in ("typ", "id", "skupina", "nazev")} for p in polozky(conn)]
+
+
+def obnov_zalohu(conn: sqlite3.Connection, data: object) -> int:
+    """Přidá sledované ze zálohy (výstup ``zaloha``); stávající nemaže, duplicity přeskočí.
+
+    :param data: načtený JSON ze souboru od uživatele – ověří se tady
+    :return: počet nově přidaných položek
+    :raises ValueError: soubor nemá tvar zálohy
+    """
+    if not isinstance(data, list) or not all(
+            isinstance(p, dict) and p.get("typ") in ("poslanec", "klub")
+            and isinstance(p.get("id"), int) and isinstance(p.get("skupina"), str)
+            for p in data):
+        raise ValueError("Soubor není záloha sledovaných.")
+    pred = conn.execute("SELECT COUNT(*) FROM sledovany").fetchone()[0]
+    for p in data:
+        pridej(conn, p["typ"], p["id"], p["skupina"])
+    return conn.execute("SELECT COUNT(*) FROM sledovany").fetchone()[0] - pred
+
+
 def hlasovani_klubu(conn: sqlite3.Connection, id_klub: int, limit: int = 10) -> list[sqlite3.Row]:
     """Poslední hlasování klubu od nejnovějšího s jeho většinou (``vetsina``, ``klub_ano``, ``klub_ne``)."""
     return conn.execute(

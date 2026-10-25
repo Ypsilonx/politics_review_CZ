@@ -14,14 +14,16 @@ Návrh: `docs/specs/2026-10-24-sledovani-poslancu-design.md`.
 - Tlačítko „Aktualizovat data“ na Přehledu (obnova na pozadí; Plánovač úloh uživatel nechce),
   jen jednou za den (`config.ZACATEK_DNE_AKTUALIZACE`, čas běhu v `data/aktualizace_posledni.txt`).
 - Poslanci: filtr podle klubu. Sledovaní: rozbalovací hlasování člena (posl. 10) a srovnání
-  skupiny („Načíst starší“) místo sekce „Jak hlasovali“.
+  skupiny („Načíst starší“) místo sekce „Jak hlasovali“. Záloha sledovaných do JSON a obnova
+  (jen přidává) na stránce Sledovaní.
 - Připraveno ke zveřejnění: LICENSE (MIT), upozornění a šetrnost v README, zdroj + datum v patičce.
 
 ## Rozpracováno
 - První kompletní stažení stenozáznamů: hotovo schůze 35–11, zbytek v noci tlačítkem.
 
 ## Další krok
-- Ověřit `obnova` 2× po sobě (druhý běh nemá nic stahovat).
+- Dostáhnout staré schůze (1–10 neúplné): večer po 22 h `uv run politika obnova` – tlačítko
+  přes den stahuje jen čerstvé. Hned potom druhý běh = ověření, že už nic nestahuje.
 - Statistiky poslance za celé působení ve sněmovně, ne jen za aktuální období: doimportovat
   hlasování starších období (`hl-2021ps` a starší), v profilu přepínač období (větší DB).
 - Později: AI shrnutí návrhů, dění kolem politika na webu, veřejné nasazení (licence, přihlášení).

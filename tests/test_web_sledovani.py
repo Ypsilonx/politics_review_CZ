@@ -39,3 +39,26 @@ def test_vlastni_stranka_prida_a_presmeruje_jen_v_aplikaci(klient):
     assert odpoved.status_code == 303
     assert odpoved.headers["location"] == "/sledovani"
     assert _pocet(config.DB_PATH) == 1
+
+
+def test_zaloha_po_smazani_obnovi_sledovane(klient):
+    hlavicky = {"Origin": "http://testserver"}
+    for typ, id_, skupina in [("poslanec", "2095", "A"), ("klub", "1750", "B")]:
+        klient.post("/sledovani/pridat", data={"typ": typ, "id": id_, "skupina": skupina},
+                    headers=hlavicky, follow_redirects=False)
+    zaloha = klient.get("/sledovani/zaloha.json").content
+    conn = get_connection(config.DB_PATH)
+    with conn:
+        conn.execute("DELETE FROM sledovany")
+    conn.close()
+    odpoved = klient.post("/sledovani/obnovit", files={"soubor": ("z.json", zaloha)},
+                          headers=hlavicky, follow_redirects=False)
+    assert odpoved.headers["location"] == "/sledovani?obnoveno=2"
+    assert _pocet(config.DB_PATH) == 2
+
+
+def test_obnova_odmitne_soubor_ktery_neni_zaloha(klient):
+    odpoved = klient.post("/sledovani/obnovit", files={"soubor": ("z.json", b'{"typ": 1}')},
+                          headers={"Origin": "http://testserver"})
+    assert odpoved.status_code == 400
+    assert _pocet(config.DB_PATH) == 0

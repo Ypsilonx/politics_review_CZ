@@ -81,4 +81,19 @@
 {% else %}
 <p class="tlumene">Zatím nesleduješ nikoho. Přidej poslance nebo klub výše.</p>
 {% endif %}
+
+<h2>Záloha</h2>
+<section class="panel">
+  {% if obnoveno is not none %}<p><b>Obnoveno ze zálohy:</b> přidáno {{ obnoveno }} položek.</p>{% endif %}
+  <p class="tlumene mala">Sledované a skupiny jsou jen v databázi tohoto počítače. Záloha je soubor JSON;
+    obnova položky jen přidá, stávající nic nesmaže.</p>
+  <div class="radek-formulare">
+    {% if polozky %}<a class="tlacitko" href="/sledovani/zaloha.json">Stáhnout zálohu</a>{% endif %}
+    <form method="post" action="/sledovani/obnovit" enctype="multipart/form-data" class="radek-formulare">
+      <label class="sr-only" for="soubor-zalohy">Soubor zálohy</label>
+      <input id="soubor-zalohy" type="file" name="soubor" accept=".json,application/json" required>
+      <button type="submit">Obnovit ze zálohy</button>
+    </form>
+  </div>
+</section>
 {% endblock %}

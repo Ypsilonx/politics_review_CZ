@@ -1,9 +1,11 @@
 """Routy: sledovaní poslanci a kluby (správa skupin, rozbalovací hlasování) a Přehled s proudem."""
 
+import json
 import sqlite3
+from datetime import date
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
 from politika.db.dotazy import schuze as dotazy_schuze
 from politika.db.dotazy import sledovani as dotazy
@@ -38,9 +40,12 @@ def prehled(request: Request, strana: int = 1, conn: sqlite3.Connection = Depend
 
 
 @router.get("/sledovani", response_class=HTMLResponse)
-def sledovani(request: Request, skupina: str = "", q: str = "",
+def sledovani(request: Request, skupina: str = "", q: str = "", obnoveno: int | None = None,
               conn: sqlite3.Connection = Depends(get_db)):
-    """Správa sledovaných (skupiny, přidání poslance / klubu); hlasování se načítají rozbalením."""
+    """Správa sledovaných (skupiny, přidání poslance / klubu); hlasování se načítají rozbalením.
+
+    :param obnoveno: počet položek přidaných obnovou ze zálohy (hláška po přesměrování)
+    """
     return templates.TemplateResponse(request, "sledovani.html", {
         "skupiny": dotazy.skupiny(conn),
         "skupina": skupina,
@@ -48,7 +53,29 @@ def sledovani(request: Request, skupina: str = "", q: str = "",
         "kluby": dotazy.kluby_obdobi(conn),
         "q": q,
         "nalezeni": hledej_poslance(conn, q)[:12] if q.strip() else [],
+        "obnoveno": obnoveno,
     })
+
+
+@router.get("/sledovani/zaloha.json")
+def stahni_zalohu(conn: sqlite3.Connection = Depends(get_db)) -> Response:
+    """Záloha sledovaných a skupin jako JSON ke stažení (data webu nejdou znovu stáhnout z psp.cz)."""
+    obsah = json.dumps(dotazy.zaloha(conn), ensure_ascii=False, indent=2)
+    nazev = f"sledovani-zaloha-{date.today().isoformat()}.json"
+    return Response(obsah, media_type="application/json",
+                    headers={"Content-Disposition": f'attachment; filename="{nazev}"'})
+
+
+@router.post("/sledovani/obnovit")
+async def obnovit_zalohu(request: Request, soubor: UploadFile = File(...),
+                         conn: sqlite3.Connection = Depends(get_db)):
+    """Přidá sledované ze souboru zálohy (stávající zůstanou) a vrátí se na Sledovaní."""
+    z_teto_aplikace(request)
+    try:
+        pridano = dotazy.obnov_zalohu(conn, json.loads(await soubor.read()))
+    except (ValueError, UnicodeDecodeError) as chyba:  # JSONDecodeError je ValueError
+        raise HTTPException(400, f"Zálohu nejde načíst: {chyba}") from chyba
+    return RedirectResponse(f"/sledovani?obnoveno={pridano}", status_code=303)
 
 
 @router.get("/sledovani/hlasy/{typ}/{id_}", response_class=HTMLResponse)
