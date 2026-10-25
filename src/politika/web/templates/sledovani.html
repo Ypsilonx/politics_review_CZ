@@ -1,9 +1,8 @@
 {% extends "base.html" %}
-{% from "_makra.html" import strankovani %}
 {% block title %}Sledovaní – Sledování poslanců{% endblock %}
 {% block content %}
 <h1>Sledovaní</h1>
-<p class="tlumene">Poslanci a kluby, které sleduješ, rozdělení do skupin. Jejich hlasování uvidíš níže a na Přehledu.</p>
+<p class="tlumene">Poslanci a kluby, které sleduješ, rozdělení do skupin. Rozklikni člena nebo srovnání skupiny a uvidíš, jak hlasovali; všechna hlasování sledovaných jsou i na Přehledu.</p>
 
 <div class="mrizka-sledovani">
   <section class="panel">
@@ -57,7 +56,12 @@
     <ul class="seznam-cisty">
       {% for c in clenove %}
       <li class="radek-clena">
-        <span>{% if c.typ == "poslanec" %}<a href="/poslanec/{{ c.id }}">{{ c.nazev }}</a>{% else %}<strong>{{ c.nazev }}</strong> <span class="tlumene mala">klub</span>{% endif %}</span>
+        {# Hlasování se načtou až při prvním rozbalení (toggle nebublá, takže se nebije se skupinou). #}
+        <details class="rozbaleni" hx-get="/sledovani/hlasy/{{ c.typ }}/{{ c.id }}"
+                 hx-trigger="toggle once" hx-target="find .obsah-rozbaleni">
+          <summary>{% if c.typ == "poslanec" %}<a href="/poslanec/{{ c.id }}">{{ c.nazev }}</a>{% else %}<strong>{{ c.nazev }}</strong> <span class="tlumene mala">klub</span>{% endif %}</summary>
+          <div class="obsah-rozbaleni"><p class="tlumene mala">Načítám…</p></div>
+        </details>
         <form method="post" action="/sledovani/odebrat">
           <input type="hidden" name="typ" value="{{ c.typ }}"><input type="hidden" name="id" value="{{ c.id }}">
           <input type="hidden" name="skupina" value="{{ c.skupina }}"><input type="hidden" name="zpet" value="/sledovani?skupina={{ skupina | urlencode }}">
@@ -66,22 +70,15 @@
       </li>
       {% endfor %}
     </ul>
+    <details class="rozbaleni srovnani" hx-get="/sledovani/srovnani?skupina={{ nazev | urlencode }}"
+             hx-trigger="toggle once" hx-target="find .obsah-rozbaleni">
+      <summary>Srovnání: jak hlasovali všichni ve skupině</summary>
+      <div class="obsah-rozbaleni"><p class="tlumene mala">Načítám…</p></div>
+    </details>
   </section>
   {% endfor %}
 </div>
 {% else %}
 <p class="tlumene">Zatím nesleduješ nikoho. Přidej poslance nebo klub výše.</p>
-{% endif %}
-
-{% if polozky %}
-<h2>Jak hlasovali</h2>
-<nav class="zalozky" aria-label="Skupiny">
-  <a href="/sledovani" {% if not skupina %}aria-current="page"{% endif %}>Všichni</a>
-  {% for s in skupiny if polozky | selectattr("skupina", "equalto", s) | list %}
-    <a href="/sledovani?skupina={{ s | urlencode }}" {% if s == skupina %}aria-current="page"{% endif %}>{{ s }}</a>
-  {% endfor %}
-</nav>
-{% include "_proud.html" %}
-{{ strankovani(request, strana, dalsi) }}
 {% endif %}
 {% endblock %}

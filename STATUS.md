@@ -11,7 +11,10 @@ Návrh: `docs/specs/2026-10-24-sledovani-poslancu-design.md`.
   příkaz `obnova`, README, projektový CLAUDE.md.
 - Revize kódu (9 nálezů) opravena. Stahování z psp.cz jen v noci 22–6 h (`--ihned` mimo okno),
   kontakt v User-Agentu z `POLITIKA_KONTAKT`, soubory tisků a návrhů jen jako odkazy na psp.cz.
-- Tlačítko „Aktualizovat data“ na Přehledu (obnova na pozadí; Plánovač úloh uživatel nechce).
+- Tlačítko „Aktualizovat data“ na Přehledu (obnova na pozadí; Plánovač úloh uživatel nechce),
+  jen jednou za den (`config.ZACATEK_DNE_AKTUALIZACE`, čas běhu v `data/aktualizace_posledni.txt`).
+- Poslanci: filtr podle klubu. Sledovaní: rozbalovací hlasování člena (posl. 10) a srovnání
+  skupiny („Načíst starší“) místo sekce „Jak hlasovali“.
 - Připraveno ke zveřejnění: LICENSE (MIT), upozornění a šetrnost v README, zdroj + datum v patičce.
 
 ## Rozpracováno

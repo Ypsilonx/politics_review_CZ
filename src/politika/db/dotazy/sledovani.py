@@ -65,6 +65,19 @@ def kluby_obdobi(conn: sqlite3.Connection) -> list[sqlite3.Row]:
     ).fetchall()
 
 
+def hlasovani_klubu(conn: sqlite3.Connection, id_klub: int, limit: int = 10) -> list[sqlite3.Row]:
+    """Poslední hlasování klubu od nejnovějšího s jeho většinou (``vetsina``, ``klub_ano``, ``klub_ne``)."""
+    return conn.execute(
+        f"""
+        SELECT x.*, kh.vetsina, kh.ano AS klub_ano, kh.ne AS klub_ne FROM ({HLASOVANI_S_BODEM}) x
+        JOIN klub_hlasovani kh ON kh.id_hlasovani = x.id_hlasovani AND kh.id_klub = ?
+        ORDER BY x.datum DESC, x.cas DESC, x.cislo DESC
+        LIMIT ?
+        """,
+        (id_klub, limit),
+    ).fetchall()
+
+
 def proud(conn: sqlite3.Connection, skupina: str | None = None, limit: int = 30,
           offset: int = 0) -> list[dict]:
     """Proud hlasování, kterých se účastnili sledovaní (od nejnovějšího).

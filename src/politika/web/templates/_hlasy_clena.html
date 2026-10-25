@@ -1,0 +1,21 @@
+{# Poslední hlasování sledovaného poslance / klubu po rozbalení řádku (routes/sledovani.py). #}
+<ul class="hlasy-clena">
+  {% for h in hlasovani %}
+  <li>
+    {% if typ == "poslanec" %}
+      <span class="hlas hlas-{{ h.hlas }}">{{ HLAS_TEXT.get(h.hlas, h.hlas) }}</span>
+    {% elif h.vetsina %}
+      <span class="hlas hlas-{{ h.vetsina }}">{{ HLAS_TEXT[h.vetsina] }} <span class="cisla">{{ h.klub_ano }}:{{ h.klub_ne }}</span></span>
+    {% else %}
+      <span class="tlumene mala">nerozhodně</span>
+    {% endif %}
+    <a href="/hlasovani/{{ h.id_hlasovani }}">{{ (h.popis or "Hlasování") | truncate(110) }}</a>
+    <span class="tlumene mala cisla nowrap">{{ h.datum | datum }} · {{ h.schuze }}/{{ h.cislo }}</span>
+  </li>
+  {% else %}
+  <li class="tlumene">Zatím žádná hlasování.</li>
+  {% endfor %}
+</ul>
+{% if typ == "poslanec" and hlasovani %}
+<p class="mala"><a href="/poslanec/{{ id }}">Všechna hlasování v profilu</a></p>
+{% endif %}

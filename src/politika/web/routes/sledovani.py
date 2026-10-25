@@ -1,13 +1,13 @@
-"""Routy: sledovaní poslanci a kluby (správa skupin) a Přehled s proudem jejich hlasování."""
+"""Routy: sledovaní poslanci a kluby (správa skupin, rozbalovací hlasování) a Přehled s proudem."""
 
 import sqlite3
 
-from fastapi import APIRouter, Depends, Form, Request
+from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from politika.db.dotazy import schuze as dotazy_schuze
 from politika.db.dotazy import sledovani as dotazy
-from politika.db.dotazy.hlasovani import seznam_hlasovani
+from politika.db.dotazy.hlasovani import hlasovani_poslance, seznam_hlasovani
 from politika.db.dotazy.poslanci import hledej_poslance
 from politika.web.app import get_db, templates, z_teto_aplikace
 
@@ -15,6 +15,9 @@ router = APIRouter()
 
 # Počet hlasování v proudu na jednu stránku.
 DELKA_PROUDU = 25
+# Kolik hlasování ukázat po rozbalení člena a na jedno načtení srovnání skupiny.
+POSLEDNICH_CLENA = 10
+DELKA_SROVNANI = 10
 
 
 @router.get("/prehled", response_class=HTMLResponse)
@@ -35,11 +38,9 @@ def prehled(request: Request, strana: int = 1, conn: sqlite3.Connection = Depend
 
 
 @router.get("/sledovani", response_class=HTMLResponse)
-def sledovani(request: Request, skupina: str = "", q: str = "", strana: int = 1,
+def sledovani(request: Request, skupina: str = "", q: str = "",
               conn: sqlite3.Connection = Depends(get_db)):
-    """Správa sledovaných (skupiny, přidání poslance / klubu) a proud hlasování vybrané skupiny."""
-    strana = max(strana, 1)
-    proud = dotazy.proud(conn, skupina or None, DELKA_PROUDU + 1, (strana - 1) * DELKA_PROUDU)
+    """Správa sledovaných (skupiny, přidání poslance / klubu); hlasování se načítají rozbalením."""
     return templates.TemplateResponse(request, "sledovani.html", {
         "skupiny": dotazy.skupiny(conn),
         "skupina": skupina,
@@ -47,10 +48,31 @@ def sledovani(request: Request, skupina: str = "", q: str = "", strana: int = 1,
         "kluby": dotazy.kluby_obdobi(conn),
         "q": q,
         "nalezeni": hledej_poslance(conn, q)[:12] if q.strip() else [],
-        "proud": proud[:DELKA_PROUDU],
-        "dalsi": len(proud) > DELKA_PROUDU,
-        "strana": strana,
     })
+
+
+@router.get("/sledovani/hlasy/{typ}/{id_}", response_class=HTMLResponse)
+def hlasy_clena(request: Request, typ: str, id_: int, conn: sqlite3.Connection = Depends(get_db)):
+    """Fragment s posledními hlasováními sledovaného poslance / klubu (rozbalení řádku)."""
+    if typ == "poslanec":
+        hlasovani = hlasovani_poslance(conn, id_, POSLEDNICH_CLENA)
+    elif typ == "klub":
+        hlasovani = dotazy.hlasovani_klubu(conn, id_, POSLEDNICH_CLENA)
+    else:
+        raise HTTPException(404, "Neznámý typ sledovaného")
+    return templates.TemplateResponse(request, "_hlasy_clena.html", {
+        "typ": typ, "id": id_, "hlasovani": hlasovani})
+
+
+@router.get("/sledovani/srovnani", response_class=HTMLResponse)
+def srovnani(request: Request, skupina: str, strana: int = 1,
+             conn: sqlite3.Connection = Depends(get_db)):
+    """Fragment se srovnáním hlasování celé skupiny (rozbalení skupiny), po stránkách."""
+    strana = max(strana, 1)
+    proud = dotazy.proud(conn, skupina, DELKA_SROVNANI + 1, (strana - 1) * DELKA_SROVNANI)
+    return templates.TemplateResponse(request, "_srovnani.html", {
+        "proud": proud[:DELKA_SROVNANI], "dalsi": len(proud) > DELKA_SROVNANI,
+        "skupina": skupina, "strana": strana})
 
 
 @router.post("/sledovani/pridat")

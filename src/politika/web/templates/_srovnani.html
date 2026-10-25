@@ -1,0 +1,11 @@
+{# Srovnání hlasování celé skupiny po rozbalení; „Načíst starší“ se nahradí další stránkou. #}
+{% if proud %}
+  {% include "_proud.html" %}
+{% elif strana == 1 %}
+  <p class="tlumene">Zatím žádná hlasování.</p>
+{% endif %}
+{% if dalsi %}
+<button type="button" class="tlacitko druhotne nacist-starsi"
+        hx-get="/sledovani/srovnani?skupina={{ skupina | urlencode }}&strana={{ strana + 1 }}"
+        hx-swap="outerHTML">Načíst starší</button>
+{% endif %}

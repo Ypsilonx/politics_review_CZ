@@ -400,6 +400,20 @@
 .radek-formulare input[type="search"] { flex: 1; }
 .nalezeni { margin-top: .75rem; }
 .nalezeni li, .radek-clena { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .5rem; padding: .35rem 0; border-bottom: 1px solid var(--okraj); }
+/* Skupiny pod sebou – rozbalené hlasování mají různou výšku, vedle sebe by se rozjížděly. */
+.mrizka-skupin { grid-template-columns: 1fr; }
+.radek-clena { align-items: flex-start; flex-wrap: nowrap; }
+.rozbaleni { flex: 1; min-width: 0; }
+.rozbaleni summary { cursor: pointer; list-style: none; padding: .15rem 0; }
+.rozbaleni summary::-webkit-details-marker { display: none; }
+.rozbaleni summary::before { content: "▸"; display: inline-block; width: 1.1rem; color: var(--text-tlumeny); transition: transform .15s; }
+.rozbaleni[open] > summary::before { transform: rotate(90deg); }
+.obsah-rozbaleni { padding: .5rem 0 .5rem 1.1rem; }
+.srovnani { margin-top: .75rem; }
+.srovnani > summary { color: var(--odkaz); }
+.hlasy-clena { list-style: none; padding: 0; margin: 0; display: grid; gap: .4rem; }
+.hlasy-clena li { display: flex; flex-wrap: wrap; align-items: baseline; gap: .25rem .6rem; }
+.nacist-starsi { margin-top: .75rem; cursor: pointer; }
 .profil-hlavicka .tlacitko-sledovat { margin-top: .6rem; }
 
 @media (max-width: 860px) {
