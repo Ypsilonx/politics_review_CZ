@@ -1,6 +1,7 @@
 """Routy: vyhledání poslance a jeho profil s historií hlasování."""
 
 import sqlite3
+from collections import Counter
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse
@@ -17,6 +18,8 @@ from politika.web.export import HLAVICKA_HLASOVANI, csv_odpoved, radek_hlasovani
 router = APIRouter()
 
 NA_STRANKU = 50
+# Hodnota filtru klubu pro poslance bez klubu (zároveň text na kartě).
+NEZARAZENY = "nezařazený"
 
 # Skupiny hlasů pro pruh v profilu: (třída CSS, text, kódy hlasů).
 _SKUPINY_HLASU = [
@@ -34,12 +37,21 @@ def _slozeni(souhrn: dict[str, int]) -> list[tuple[str, str, int]]:
 
 
 @router.get("/poslanci", response_class=HTMLResponse)
-def seznam(request: Request, q: str = "", conn: sqlite3.Connection = Depends(get_db)):
-    """Seznam poslanců s vyhledáváním. Požadavek z HTMX dostane jen fragment s kartami."""
+def seznam(request: Request, q: str = "", klub: str = "",
+           conn: sqlite3.Connection = Depends(get_db)):
+    """Seznam poslanců s vyhledáváním podle jména a filtrem klubu (zkratka nebo ``NEZARAZENY``).
+
+    Požadavek z HTMX dostane jen fragment s kartami; celá stránka i výběr klubů s počty.
+    """
     poslanci = [{**p, "foto": cesta_fotky(p["id_osoba"]).exists()}
-                for p in dotazy.hledej_poslance(conn, q)]
-    sablona = "_poslanci_seznam.html" if request.headers.get("HX-Request") else "poslanci.html"
-    return templates.TemplateResponse(request, sablona, {"poslanci": poslanci, "q": q})
+                for p in dotazy.hledej_poslance(conn, q)
+                if not klub or (p["klub"] or NEZARAZENY) == klub]
+    if request.headers.get("HX-Request"):
+        return templates.TemplateResponse(request, "_poslanci_seznam.html", {"poslanci": poslanci})
+    kluby = Counter(p["klub"] or NEZARAZENY for p in dotazy.hledej_poslance(conn))
+    return templates.TemplateResponse(request, "poslanci.html", {
+        "poslanci": poslanci, "q": q, "klub": klub, "kluby": sorted(kluby.items()),
+    })
 
 
 # Záložky profilu: (klíč v URL, název).

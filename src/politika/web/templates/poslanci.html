@@ -3,10 +3,19 @@
 {% block content %}
 <h1>Poslanci</h1>
 <p class="tlumene">Poslanecká sněmovna, volební období od 2025.</p>
-<label class="sr-only" for="hledat-poslance">Hledat poslance</label>
-<input id="hledat-poslance" class="hledani-velke" type="search" name="q" value="{{ q }}"
-       placeholder="Jméno nebo příjmení…" autofocus
-       hx-get="/poslanci" hx-trigger="input changed delay:250ms, search"
-       hx-target="#seznam" hx-push-url="true">
+{# Jméno i klub se posílají spolu: HTMX u formuláře přibalí všechna jeho pole. #}
+<form class="hledani-poslancu" action="/poslanci" method="get"
+      hx-get="/poslanci" hx-trigger="input delay:250ms, change" hx-target="#seznam" hx-push-url="true">
+  <label class="sr-only" for="hledat-poslance">Hledat poslance</label>
+  <input id="hledat-poslance" class="hledani-velke" type="search" name="q" value="{{ q }}"
+         placeholder="Jméno nebo příjmení…" autofocus>
+  <label class="sr-only" for="filtr-klub">Klub</label>
+  <select id="filtr-klub" class="hledani-velke" name="klub">
+    <option value="">Všechny kluby</option>
+    {% for k, pocet in kluby %}
+    <option value="{{ k }}" {% if k == klub %}selected{% endif %}>{{ k }} ({{ pocet }})</option>
+    {% endfor %}
+  </select>
+</form>
 <div id="seznam">{% include "_poslanci_seznam.html" %}</div>
 {% endblock %}
