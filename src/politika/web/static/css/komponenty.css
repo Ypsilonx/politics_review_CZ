@@ -60,6 +60,8 @@
 .panel { background: var(--plocha); border: 1px solid var(--okraj); border-radius: var(--radius); padding: 1.1rem 1.25rem; }
 .aktualizace { margin-top: .75rem; }
 .aktualizace p { margin: .5rem 0 0; }
+.prubeh-aktualizace { display: block; width: 100%; max-width: 28rem; height: .6rem; margin-top: .35rem;
+  accent-color: var(--odkaz); }
 .vypis-aktualizace {
   margin: .5rem 0 0; padding: .5rem .6rem; font-size: .75rem; line-height: 1.4; white-space: pre-wrap;
   overflow-wrap: anywhere; background: var(--pozadi); border: 1px solid var(--okraj); border-radius: var(--radius);

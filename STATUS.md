@@ -12,7 +12,8 @@ Návrh: `docs/specs/2026-10-24-sledovani-poslancu-design.md`.
 - Revize kódu (9 nálezů) opravena. Stahování z psp.cz jen v noci 22–6 h (`--ihned` mimo okno),
   kontakt v User-Agentu z `POLITIKA_KONTAKT`, soubory tisků a návrhů jen jako odkazy na psp.cz.
 - Tlačítko „Aktualizovat data“ na Přehledu (obnova na pozadí; Plánovač úloh uživatel nechce),
-  jen jednou za den (`config.ZACATEK_DNE_AKTUALIZACE`, čas běhu v `data/aktualizace_posledni.txt`).
+  jen jednou za den (`config.ZACATEK_DNE_AKTUALIZACE`, čas běhu v `data/aktualizace_posledni.txt`),
+  s průběhem (fáze 1–3, krok X z N) z `data/aktualizace_stav.json`.
 - Poslanci: filtr podle klubu. Sledovaní: rozbalovací hlasování člena (posl. 10) a srovnání
   skupiny („Načíst starší“) místo sekce „Jak hlasovali“. Záloha sledovaných do JSON a obnova
   (jen přidává) na stránce Sledovaní.

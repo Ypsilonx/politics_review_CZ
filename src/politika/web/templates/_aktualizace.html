@@ -2,7 +2,17 @@
 <div id="aktualizace" class="aktualizace"
      {% if bezi %}hx-get="/aktualizace" hx-trigger="every 3s" hx-swap="outerHTML"{% endif %}>
   {% if bezi %}
-    <p class="mala"><b>Aktualizuji…</b> <span class="tlumene">od {{ spusteno.strftime("%H:%M") }}</span></p>
+    <p class="mala"><b>Aktualizuji…</b>
+      <span class="tlumene">od {{ spusteno.strftime("%H:%M") }} ({{ minut }} min)</span></p>
+    {% if prubeh and prubeh.faze_cislo %}
+      {# Fáze s jediným krokem (import) nemá dílčí průběh → neurčitý pruh bez value. #}
+      <p class="mala">Fáze {{ prubeh.faze_cislo }} ze {{ prubeh.faze_celkem }}: {{ prubeh.faze }}</p>
+      <progress class="prubeh-aktualizace" max="{{ prubeh.celkem }}"
+                {% if prubeh.celkem > 1 %}value="{{ prubeh.hotovo }}"{% endif %}></progress>
+      <p class="tlumene mala">
+        {% if prubeh.celkem > 1 %}{{ prubeh.hotovo }} z {{ prubeh.celkem }}{% if prubeh.krok %} · {% endif %}{% endif %}
+        {% if prubeh.krok %}právě {{ prubeh.krok }}{% endif %}</p>
+    {% endif %}
   {% else %}
     <button class="tlacitko" hx-post="/aktualizace" hx-target="#aktualizace" hx-swap="outerHTML"
             {% if blokovano_do %}disabled{% endif %}>Aktualizovat data</button>

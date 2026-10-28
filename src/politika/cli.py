@@ -1,15 +1,17 @@
 """Příkazová řádka aplikace (``uv run politika <příkaz>``)."""
 
 import argparse
+import json
 import sys
 from collections.abc import Callable
+from pathlib import Path
 
 from politika import config
 from politika.analyza.predpocet import prepocitej
 from politika.db.connection import get_connection
 from politika.dokumenty.foto import stahni_fotky
 from politika.dokumenty.kancelare import obnov_kancelare
-from politika.dokumenty.stahovani import MimoNocniOkno, Stahovac
+from politika.dokumenty.stahovani import MimoNocniOkno, Stahovac, v_nocnim_okne
 from politika.dokumenty.steno import cerstve_schuze, schuze_obdobi, stahni_steno_schuze
 from politika.dokumenty.tisky import stahni_odkazy_tisku, tisky_obdobi, tisky_schuzi
 from politika.importer.opendata import importuj_vse, stahni_opendata
@@ -17,10 +19,30 @@ from politika.parovani.sluzba import paruj_schuzi
 
 
 class Prubeh:
-    """Spouští dílčí kroky dlouhého běhu: chybu kroku vypíše a pokračuje dalším krokem."""
+    """Spouští dílčí kroky dlouhého běhu: chybu kroku vypíše a pokračuje dalším krokem.
 
-    def __init__(self) -> None:
+    Volitelně zapisuje stav (fáze, krok X z N) do JSON souboru, ze kterého web kreslí průběh.
+    """
+
+    def __init__(self, soubor_stavu: Path | None = None, faze_celkem: int = 1) -> None:
+        """:param soubor_stavu: kam zapisovat stav po každé změně; ``None`` = nikam
+        :param faze_celkem: kolik fází (``faze()``) běh bude mít
+        """
         self.chyb = 0
+        self._soubor = soubor_stavu
+        self._stav = {"faze": "", "faze_cislo": 0, "faze_celkem": faze_celkem,
+                      "hotovo": 0, "celkem": 0, "krok": ""}
+
+    def _zapis(self) -> None:
+        """Zapíše stav do souboru (je-li zadán)."""
+        if self._soubor is not None:
+            self._soubor.write_text(json.dumps(self._stav, ensure_ascii=False), encoding="utf-8")
+
+    def faze(self, nazev: str, kroku: int) -> None:
+        """Začne další fázi běhu, která bude mít ``kroku`` kroků."""
+        self._stav |= {"faze": nazev, "faze_cislo": self._stav["faze_cislo"] + 1,
+                       "hotovo": 0, "celkem": kroku, "krok": ""}
+        self._zapis()
 
     def krok(self, popis: str, funkce: Callable[[], object]) -> None:
         """Provede krok a vypíše ``popis: výsledek``; jakoukoli chybu kroku zapíše a pokračuje.
@@ -28,6 +50,9 @@ class Prubeh:
         Chytá se záměrně vše (i chyby parsování změněné stránky psp.cz) – jeden vadný tisk
         nebo schůze nesmí zastavit obnovu ostatních. Celý běh pak skončí s kódem 1.
         """
+        # popis je psaný pro výpis výsledku („schůze 34, úseků: 12“) – do průběhu jen „schůze 34“
+        self._stav["krok"] = popis.partition(",")[0]
+        self._zapis()
         try:
             print(f"{popis}: {funkce()}", flush=True)
         except MimoNocniOkno:
@@ -35,6 +60,8 @@ class Prubeh:
         except Exception as chyba:  # noqa: BLE001 – viz docstring
             self.chyb += 1
             print(f"{popis}: CHYBA {type(chyba).__name__}: {chyba}", flush=True)
+        self._stav["hotovo"] += 1
+        self._zapis()
 
 
 def _importuj(stahnout: bool) -> dict[str, int]:
@@ -84,6 +111,16 @@ def _stahni_dokumenty(prubeh: Prubeh, schuze: list[int], tisky: list[int],
     if vse or kancelare:
         kroky.insert(0, ("kanceláře", lambda st: obnov_kancelare(conn, st), False))
     kroky.sort(key=lambda k: not k[2])  # stabilní řazení: jinak zůstává pořadí výše
+    # Mimo noční okno by ostatní kroky skončily na prvním požadavku (MimoNocniOkno); vynechat
+    # je předem, ať průběh ve webu ukazuje počet kroků, které opravdu poběží.
+    if not (ihned or v_nocnim_okne()):
+        odlozenych = sum(not k[2] for k in kroky)
+        kroky = [k for k in kroky if k[2]]
+        if odlozenych:
+            od, do = config.NOCNI_OKNO
+            print(f"mimo noční okno ({od}–{do} h): {odlozenych} kroků se stáhne příští noc "
+                  "(hned: --ihned)", flush=True)
+    prubeh.faze("Stahování z psp.cz", len(kroky))
 
     with Stahovac() as st:
         try:
@@ -108,7 +145,9 @@ def _paruj(prubeh: Prubeh, schuze: list[int]) -> None:
         return (f"{v.s_uryvkem}/{v.hlasovani} hlasování s předmětem, "
                 f"{v.s_dokumentem} s dokumentem návrhů")
 
-    for s in schuze or schuze_obdobi(conn):
+    vybrane = schuze or schuze_obdobi(conn)
+    prubeh.faze("Párování se stenozáznamy", len(vybrane))
+    for s in vybrane:
         prubeh.krok(f"párování schůze {s}", lambda s=s: jedna(s))
     conn.close()
 
@@ -138,7 +177,8 @@ def cmd_obnova(args: argparse.Namespace) -> None:
 
     Skončí s kódem 1, pokud některý krok selhal (Plánovač úloh / cron to zaznamená).
     """
-    prubeh = Prubeh()
+    prubeh = Prubeh(config.STAV_OBNOVY, faze_celkem=3)
+    prubeh.faze("Otevřená data (stažení a import)", 1)
     prubeh.krok("import otevřených dat", lambda: sum(_importuj(stahnout=True).values()))
     _stahni_dokumenty(prubeh, [], [], kancelare=False, fotky=False, ihned=args.ihned,
                       cerstve_ihned=args.cerstve_ihned)

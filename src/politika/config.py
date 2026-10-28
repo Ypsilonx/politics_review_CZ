@@ -12,6 +12,8 @@ PROJEKT_DIR = Path(__file__).resolve().parents[2]
 DATA_DIR = Path(os.environ.get("POLITIKA_DATA", PROJEKT_DIR / "data"))
 OPENDATA_DIR = DATA_DIR / "opendata"
 DB_PATH = Path(os.environ.get("POLITIKA_DB", DATA_DIR / "politika.db"))
+# Průběh běžící obnovy (fáze, krok X z N) – zapisuje ``politika obnova``, čte panel ve webu.
+STAV_OBNOVY = DATA_DIR / "aktualizace_stav.json"
 
 OPENDATA_URL = "https://www.psp.cz/eknih/cdrom/opendata/"
 # Volební období, jehož hlasování se importují (název ZIPu hl-{OBDOBI}.zip).

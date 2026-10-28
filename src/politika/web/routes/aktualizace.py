@@ -6,6 +6,7 @@ se na psp.cz nikdy nestahovalo souběžně, a pustí ho jen jednou za den
 (``config.ZACATEK_DNE_AKTUALIZACE``). Výstup jde do ``data/aktualizace.log``.
 """
 
+import json
 import os
 import subprocess
 import sys
@@ -57,13 +58,28 @@ def _blokovano_do() -> datetime | None:
     return od if datetime.now() < od else None
 
 
+def _prubeh() -> dict | None:
+    """Stav běžící obnovy ze ``config.STAV_OBNOVY`` (fáze, krok X z N); ``None``, když není.
+
+    Obnova soubor přepisuje během čtení, takže rozepsaný JSON se bere jako „zatím nic“ –
+    panel se za 3 s načte znovu.
+    """
+    try:
+        return json.loads(config.STAV_OBNOVY.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+
+
 def _stav(request: Request) -> HTMLResponse:
-    """Panel s tlačítkem a stavem: běží (s posledními řádky výpisu) / skončilo / nic."""
+    """Panel s tlačítkem a stavem: běží (průběh a poslední řádky výpisu) / skončilo / nic."""
     radky = []
     if _Beh.proces is not None and LOG.exists():
         radky = LOG.read_text(encoding="utf-8", errors="replace").splitlines()[-RADKU_VYPISU:]
+    bezi = _bezi()
     return templates.TemplateResponse(request, "_aktualizace.html", {
-        "bezi": _bezi(),
+        "bezi": bezi,
+        "prubeh": _prubeh() if bezi else None,
+        "minut": int((datetime.now() - _Beh.spusteno).total_seconds() // 60) if bezi else 0,
         "blokovano_do": _blokovano_do(),
         "spusteno": _Beh.spusteno,
         "kod": _Beh.proces.returncode if _Beh.proces is not None and not _bezi() else None,
@@ -84,6 +100,7 @@ def spustit(request: Request):
     z_teto_aplikace(request)
     if not _bezi() and _blokovano_do() is None:
         LOG.parent.mkdir(parents=True, exist_ok=True)
+        config.STAV_OBNOVY.unlink(missing_ok=True)  # ať se neukáže průběh minulého běhu
         with LOG.open("w", encoding="utf-8") as vystup:
             _Beh.proces = subprocess.Popen(
                 [sys.executable, "-m", "politika", "obnova", "--cerstve-ihned"],
