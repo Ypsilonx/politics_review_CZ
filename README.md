@@ -37,7 +37,7 @@ uv sync
 uv run politika import            # otevřená data PSP → databáze (asi minuta)
 uv run politika stahni-dokumenty  # stenozáznamy, odkazy na tisky, kanceláře, fotky (v noci)
 uv run politika paruj             # předmět hlasování ze stenozáznamů
-uv run politika web               # http://127.0.0.1:8000
+uv run politika web               # http://127.0.0.1:8106
 ```
 
 `stahni-dokumenty` poprvé trvá **několik hodin**. Server psp.cz omezuje počet spojení, proto
@@ -70,7 +70,7 @@ Při chybě některého kroku skončí příkaz s kódem 1, ostatní kroky přes
 | Složka s daty, soubor databáze | proměnné prostředí `POLITIKA_DATA`, `POLITIKA_DB` |
 | Volební období, pauza mezi požadavky, noční okno (`NOCNI_OKNO`) | `src/politika/config.py` |
 | Kontakt v User-Agentu pro správce psp.cz (e-mail) | proměnná prostředí `POLITIKA_KONTAKT` |
-| Přístup z domácí sítě (ne z internetu, viz Bezpečnost) | `uv run politika web --host 0.0.0.0 --port 8000` |
+| Přístup z domácí sítě (ne z internetu, viz Bezpečnost) | `uv run politika web --host 0.0.0.0 --port 8106` |
 | Barvy, písmo (oba režimy) | `src/politika/web/static/css/base.css` (proměnné v `:root`) |
 | Sekce v menu | `MENU` v `src/politika/web/app.py` |
 

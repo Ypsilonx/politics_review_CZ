@@ -8,7 +8,7 @@ Doména: python-uv (web-api) + web-frontend. Obecná pravidla domén jsou ve ski
 
 ## Spuštění a ověření
 
-- Web: `uv run politika web` (http://127.0.0.1:8000; domácí síť `--host 0.0.0.0`)
+- Web: `uv run politika web` (http://127.0.0.1:8106; domácí síť `--host 0.0.0.0`)
 - Data: tlačítko „Aktualizovat data“ na Přehledu (`web/routes/aktualizace.py` spustí
   `python -m politika obnova --cerstve-ihned`), nebo `uv run politika obnova`, dílčí kroky `import`,
   `stahni-dokumenty [--schuze N] [--tisk CT] [--kancelare] [--fotky]`, `paruj [--schuze N]`

@@ -223,7 +223,7 @@ def main() -> None:
     p = sub.add_parser("web", help="spustit webové rozhraní")
     # 127.0.0.1 = jen tento počítač; na domácím serveru --host 0.0.0.0 (celá domácí síť).
     p.add_argument("--host", default="127.0.0.1")
-    p.add_argument("--port", type=int, default=8000)
+    p.add_argument("--port", type=int, default=8106)
     p.add_argument("--reload", action="store_true", help="restart při změně kódu (vývoj)")
     p.set_defaults(func=cmd_web)
     args = parser.parse_args()
