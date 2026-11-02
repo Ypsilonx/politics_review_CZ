@@ -1,3 +1,8 @@
+{# Odkaz na tisk v aplikaci a vedle něj na jeho znění na psp.cz (nová karta). #}
+{% macro odkaz_tisku(ct, text="tisk") -%}
+<a class="mala" href="/zakony/{{ ct }}">{{ text }} {{ ct }}</a> <a class="mala" href="{{ zneni_tisku(ct) }}" target="_blank" rel="noopener" title="Znění tisku {{ ct }} na psp.cz">(znění)</a>
+{%- endmacro %}
+
 {# Sdílená makra šablon. #}
 
 {# Krátký popis předmětu hlasování ze stenozáznamu: „Pozměňovací návrh B2 – Budeme hlasovat o …“. #}
@@ -18,7 +23,7 @@
       <td class="nowrap cisla tlumene">{{ h.datum | datum }} {{ h.cas }}</td>
       <td class="nowrap"><a href="/hlasovani/{{ h.id_hlasovani }}">{{ h.schuze }}/{{ h.cislo }}</a></td>
       <td class="popis">
-        {%- if s_bodem %}{{ h.popis or "–" }}{% if h.tisk_ct %} <a class="mala" href="/zakony/{{ h.tisk_ct }}">tisk {{ h.tisk_ct }}</a>{% endif %}{% endif %}
+        {%- if s_bodem %}{{ h.popis or "–" }}{% if h.tisk_ct %} {{ odkaz_tisku(h.tisk_ct) }}{% endif %}{% endif %}
         {%- if h.predmet_druh %}<div class="mala predmet-radek">{{ predmet_kratce(h) }}</div>
         {%- elif not s_bodem %}<span class="tlumene">Předmět zatím nezjištěn</span>{% endif -%}
       </td>

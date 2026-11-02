@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_makra.html" import tabulka_hlasovani, strankovani, predmet_kratce %}
+{% from "_makra.html" import tabulka_hlasovani, strankovani, predmet_kratce, odkaz_tisku %}
 {% set jmeno = [poslanec.titul_pred, poslanec.jmeno, poslanec.prijmeni, poslanec.titul_za] | select | join(" ") %}
 {% block title %}{{ jmeno }} – Sledování poslanců{% endblock %}
 {% block content %}
@@ -98,7 +98,7 @@
         {% for v in vystoupeni %}
         <li>
           <span class="tlumene mala cisla nowrap">{{ v.datum | datum }}{% if v.od_t and v.od_t > 0 %} {{ "%d:%02d" | format(v.od_t // 60, v.od_t % 60) }}{% endif %}</span>
-          <span>{{ v.bod_nazev or "Mimo projednávaný bod" }}{% if v.tisk_ct %} <a class="mala" href="/zakony/{{ v.tisk_ct }}">tisk {{ v.tisk_ct }}</a>{% endif %}</span>
+          <span>{{ v.bod_nazev or "Mimo projednávaný bod" }}{% if v.tisk_ct %} {{ odkaz_tisku(v.tisk_ct) }}{% endif %}</span>
           <a class="mala nowrap" href="https://www.psp.cz/eknih/{{ obdobi_url }}/stenprot/{{ '%03d' | format(v.schuze) }}schuz/s{{ '%03d' | format(v.schuze) }}{{ '%03d' | format(v.turn) }}.htm#r{{ v.aname }}" target="_blank" rel="noopener">{{ v.schuze }}. schůze, přepis</a>
         </li>
         {% endfor %}
@@ -111,6 +111,7 @@
       <ul class="seznam-cisty seznam-navrhu-zakonu">
         {% for t in navrhy %}
         <li><a href="/zakony/{{ t.ct }}">Tisk {{ t.ct }}</a> {{ t.nazev }}
+          <a class="mala" href="{{ zneni_tisku(t.ct) }}" target="_blank" rel="noopener">(znění)</a>
           <span class="tlumene mala">{{ t.predlozeno | datum }}{% if t.stav %}, {{ t.stav }}{% endif %}</span></li>
         {% endfor %}
       </ul>

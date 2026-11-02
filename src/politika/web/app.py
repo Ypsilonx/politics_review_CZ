@@ -51,6 +51,14 @@ def datum_cz(iso: str | None) -> str:
     return f"{int(d)}. {int(m)}. {r}"
 
 
+def zneni_tisku(ct: int) -> str:
+    """Global šablon: adresa stránky původního znění tisku (verze 0) se soubory PDF na psp.cz.
+
+    Adresa jde odvodit z čísla tisku, takže funguje i u tisků bez stažených odkazů na soubory.
+    """
+    return f"https://www.psp.cz/sqw/text/tiskt.sqw?o=10&ct={ct}&ct1=0"
+
+
 def stav_dat() -> str:
     """Datum zpracování otevřených dat (poslední stažení ZIPu hlasování) – podmínka užití dat PSP."""
     zip_hlasovani = config.OPENDATA_DIR / f"hl-{config.OBDOBI}.zip"
@@ -64,6 +72,7 @@ templates.env.globals.update(HLAS_TEXT=HLAS_TEXT, VYSLEDEK_TEXT=VYSLEDEK_TEXT,
                              DRUH_TEXT=DRUH_TEXT, MENU=MENU, PSP_URL="https://www.psp.cz")
 templates.env.filters["datum"] = datum_cz
 templates.env.globals["stav_dat"] = stav_dat
+templates.env.globals["zneni_tisku"] = zneni_tisku
 
 
 def get_db() -> Iterator[sqlite3.Connection]:

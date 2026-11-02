@@ -1,11 +1,14 @@
 {% extends "base.html" %}
+{% from "_makra.html" import odkaz_tisku %}
 {% block title %}Hlasování {{ h.schuze }}/{{ h.cislo }} – Sledování poslanců{% endblock %}
 {% block content %}
 <section class="hlasovani-hlavicka">
   <div>
     <p class="tlumene">{{ h.schuze }}. schůze, hlasování {{ h.cislo }}, {{ h.datum | datum }} v {{ h.cas }}</p>
     <h1 class="predmet">{{ h.popis or "Předmět hlasování nezjištěn" }}</h1>
-    {% if h.tisk_ct %}<p><span class="stitek">Sněmovní tisk {{ h.tisk_ct }}</span></p>{% endif %}
+    {% if h.tisk_ct %}<p><span class="stitek">Sněmovní tisk {{ h.tisk_ct }}</span>
+      <a href="/zakony/{{ h.tisk_ct }}">Detail tisku</a>
+      <a href="{{ zneni_tisku(h.tisk_ct) }}" target="_blank" rel="noopener">Znění tisku na psp.cz</a></p>{% endif %}
     <p class="vysledek vysledek-{{ h.vysledek }}">{{ VYSLEDEK_TEXT.get(h.vysledek, h.vysledek) }}</p>
     <p class="cisla-hlasovani cisla">
       <span class="hlas hlas-A">Pro <b>{{ h.pro }}</b></span>

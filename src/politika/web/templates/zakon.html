@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "_makra.html" import tabulka_hlasovani %}
+{% set zneni_url = zneni_tisku(t.ct) %}
 {% block title %}Tisk {{ t.ct }} – Sledování poslanců{% endblock %}
 {% block content %}
 <p class="tlumene">Sněmovní tisk {{ t.ct }}{% if t.druh %}, {{ t.druh | lower }}{% endif %}</p>
@@ -7,6 +8,7 @@
 <div class="profil-meta">
   {% if t.stav %}<span class="stitek">{{ t.stav }}</span>{% endif %}
   {% if sbirka %}<a href="https://www.e-sbirka.cz/sb/{{ sbirka.rok }}/{{ sbirka.cislo }}" target="_blank" rel="noopener">Sbírka zákonů č. {{ sbirka.cislo }}/{{ sbirka.rok }}</a>{% endif %}
+  <a href="{{ zneni_url }}" target="_blank" rel="noopener">Znění tisku na psp.cz</a>
   <a href="{{ psp_url }}" target="_blank" rel="noopener">Průběh na psp.cz</a>
 </div>
 {% if t.uplny_nazev and t.uplny_nazev != t.nazev %}<p class="uplny-nazev">{{ t.uplny_nazev }}</p>{% endif %}
@@ -33,7 +35,11 @@
       {% endfor %}
       </ul>
     {% else %}
-      <p class="tlumene">Odkazy na soubory tisku zatím nejsou načtené. Najdeš je v <a href="{{ psp_url }}" target="_blank" rel="noopener">průběhu na psp.cz</a>.</p>
+      <p><a href="{{ zneni_url }}" target="_blank" rel="noopener">Původní návrh (tisk {{ t.ct }}/0)</a>
+        <span class="tlumene mala">stránka se soubory PDF na psp.cz</span></p>
+      <p class="tlumene mala">Pozdější verze (např. se souhrnem pozměňovacích návrhů) najdeš v
+        <a href="{{ psp_url }}" target="_blank" rel="noopener">průběhu na psp.cz</a>; přímé odkazy
+        se načítají jen u tisků, o kterých se hlasovalo.</p>
     {% endif %}
   </section>
 </div>

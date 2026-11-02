@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_makra.html" import tabulka_hlasovani %}
+{% from "_makra.html" import tabulka_hlasovani, odkaz_tisku %}
 {% block title %}{{ s.cislo }}. schůze – Sledování poslanců{% endblock %}
 {% block content %}
 <h1>{{ s.cislo }}. schůze</h1>
@@ -15,7 +15,7 @@
   <details class="klub-blok bod-blok" {% if polozka.hlasovani and loop.length < 8 %}open{% endif %}>
     <summary>
       <span class="cisla tlumene">{{ b.cislo if b else "–" }}</span>
-      <span>{% if b %}{{ b.zkratka or b.nazev | truncate(140) }}{% if b.ct %} <a class="mala" href="/zakony/{{ b.ct }}">tisk {{ b.ct }}</a>{% endif %}{% else %}Procedurální hlasování mimo body{% endif %}</span>
+      <span>{% if b %}{{ b.zkratka or b.nazev | truncate(140) }}{% if b.ct %} {{ odkaz_tisku(b.ct) }}{% endif %}{% else %}Procedurální hlasování mimo body{% endif %}</span>
       <span class="tlumene mala nowrap">{{ polozka.hlasovani | length }} hlasování</span>
     </summary>
     <div class="bod-obsah">
